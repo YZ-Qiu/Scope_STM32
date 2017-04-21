@@ -36,6 +36,7 @@
 #include "rng.h"
 #include "spi.h"
 #include "gpio.h"
+#include "delay.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -51,6 +52,8 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void Error_Handler(void);
+
+void Delayms(uint32_t millis);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -87,12 +90,15 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  
   while (1)
   {
   /* USER CODE END WHILE */
 	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
   /* USER CODE BEGIN 3 */
-    HAL_Delay(1000);
+    delay(1000);
+	//HAL_Delay(1000);
+
   /* USER CODE BEGIN 3 */
 
   }
@@ -148,8 +154,10 @@ void SystemClock_Config(void)
   HAL_RCC_EnableCSS();
 
     /**Configure the Systick interrupt time 
-    */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+	*/
+	HAL_SYSTICK_Config(160000000/10000);
+//	HAL_SYSTICK_Config(SystemCoreClock/10000);
+
 
     /**Configure the Systick 
     */
