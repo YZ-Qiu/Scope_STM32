@@ -36,7 +36,20 @@
 #include "rng.h"
 #include "spi.h"
 #include "gpio.h"
-#include "delay.h"
+//#include "delay.h"
+#include "LCD.h"
+
+#ifdef __GNUC__
+  /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+     set to 'Yes') calls __io_putchar() */
+  #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+void  Delay (uint32_t nCount)
+{
+  for(; nCount != 0; nCount--);
+}
 
 /* USER CODE BEGIN Includes */
 
@@ -54,6 +67,7 @@ void SystemClock_Config(void);
 void Error_Handler(void);
 
 void Delayms(uint32_t millis);
+
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -76,32 +90,30 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
+
+  
   /* Configure the system clock */
   SystemClock_Config();
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_RNG_Init();
+ 
+
+ MX_RNG_Init();
   MX_SPI3_Init();
 
   /* USER CODE BEGIN 2 */
+  LCD_Initializtion();
+  LCD_Clear(Red);
 
   /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  
-  while (1)
+ /* Infinite loop */
+  while (1)	
   {
-  /* USER CODE END WHILE */
-	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
-  /* USER CODE BEGIN 3 */
-    delay(1000);
-	//HAL_Delay(1000);
-
-  /* USER CODE BEGIN 3 */
-
+  //  getDisplayPoint(&display, Read_Ads7846(), &matrix ) ;
   }
+
   /* USER CODE END 3 */
 
 }
@@ -154,8 +166,9 @@ void SystemClock_Config(void)
   HAL_RCC_EnableCSS();
 
     /**Configure the Systick interrupt time 
+	 * HAL_RCC_GetHCLKFreq() = 168 MHz
 	*/
-	HAL_SYSTICK_Config(160000000/10000);
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/10000);
 //	HAL_SYSTICK_Config(SystemCoreClock/10000);
 
 
