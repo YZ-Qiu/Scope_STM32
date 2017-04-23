@@ -36,7 +36,8 @@
 #include "rng.h"
 #include "spi.h"
 #include "gpio.h"
-//#include "delay.h"
+
+#include "delay.h"
 #include "LCD.h"
 
 #ifdef __GNUC__
@@ -46,10 +47,7 @@
 #else
   #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
 #endif /* __GNUC__ */
-void  Delay (uint32_t nCount)
-{
-  for(; nCount != 0; nCount--);
-}
+
 
 /* USER CODE BEGIN Includes */
 
@@ -101,13 +99,31 @@ int main(void)
 
  MX_RNG_Init();
   MX_SPI3_Init();
-
   /* USER CODE BEGIN 2 */
   LCD_Initializtion();
-  LCD_Clear(Red);
+  
 
   /* USER CODE END 2 */
+  GUI_TextFont(10, 10, "STM32F4-Discovery board", Green,SYSTEM_8x16);
+  
+  GUI_TextFont(10, 30, "Running @ 168 MHz", Green,SYSTEM_8x16);
+  GUI_TextFont(10, 50, "SSD1289 320x240 GLCD", Green, SYSTEM_8x16);
+  GUI_TextFont(10, 70, "XPT2046 Touchscreen", Green, SYSTEM_8x16);
+  GUI_TextFont(10, 130, "Demo routine...", Green, FONT8x8);
+  GUI_TextFont(10, 210, "(C) 2013 Fabio Angeletti", Green, FONT6x8);
 
+
+
+ 
+  delay(10000);
+  LCD_Clear(Green);
+  
+   Clr_Backlight;
+   delay(500);
+   Set_Backlight;
+   delay(5000);
+
+  
  /* Infinite loop */
   while (1)	
   {

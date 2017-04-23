@@ -17,6 +17,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <math.h>
+#include "AsciiLib.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 
@@ -33,7 +34,7 @@
 //#define DISP_VER_RESOLUTION				240
 
 //#define DISP_ORIENTATION					0
-#define DISP_ORIENTATION					90
+#define DISP_ORIENTATION					270
 //#define DISP_ORIENTATION					180
 //#define DISP_ORIENTATION					270
 
@@ -123,10 +124,18 @@ void LCD_Clear(uint16_t Color);
 //void LCD_SetBacklight(uint8_t intensity);
 uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos);
 void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point);
-void PutChar(uint16_t Xpos,uint16_t Ypos,uint8_t c,uint16_t charColor,uint16_t bkColor);
 void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t color );
 void PutChinese(uint16_t Xpos,uint16_t Ypos,uint8_t *str,uint16_t Color,uint16_t bkColor); 
-void GUI_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str,uint16_t Color, uint16_t bkColor);
+
+void cleanPutChar( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor);
+void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t FONTx);
+
+void putChar(uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t bkColor);
+void putCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t bkColor, uint16_t FONTx);
+
+void GUI_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color);
+void GUI_TextFont(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color, uint16_t FONTx);
+
 void GUI_Chinese(uint16_t Xpos, uint16_t Ypos, uint8_t *str,uint16_t Color, uint16_t bkColor);	
 void LCD_DrawPicture(uint16_t StartX,uint16_t StartY,uint16_t EndX,uint16_t EndY,uint16_t *pic);
 
