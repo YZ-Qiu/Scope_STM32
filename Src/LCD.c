@@ -1089,7 +1089,7 @@ void LCD_Initializtion(void)
 *******************************************************************************/
 void LCD_Clear(uint16_t Color)
 {
-	uint32_t index=0;
+	uint16_t index=0;
 	
 	if( LCD_Code == HX8347D || LCD_Code == HX8347A )
 	{
