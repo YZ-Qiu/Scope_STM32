@@ -32,7 +32,7 @@ static uint8_t LCD_Code;
 #define  ILI9328    2  /* 0x9328 */
 #define  ILI9331    3  /* 0x9331 */
 #define  SSD1298    4  /* 0x8999 */
-#define  SSD1289    5  /* 0x8989 */
+#define  LCD    5  /* 0x8989 */
 #define  ST7781     6  /* 0x7783 */
 #define  LGDP4531   7  /* 0x4531 */
 #define  SPFD5408B  8  /* 0x5408 */
@@ -236,7 +236,7 @@ static void LCD_SetCursor( uint16_t Xpos, uint16_t Ypos )
 	#endif
 
 
-	if (LCD_Code == SSD1289)
+	if (LCD_Code == LCD)
 	{
 	
 			 LCD_WriteReg(0x004e, Xpos);      
@@ -443,7 +443,7 @@ uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos)
 		case ST7781:
 		case LGDP4531:
 		case LGDP4535:
-		case SSD1289:
+		case LCD:
 		case SSD1298:
       dummy = LCD_ReadData();
       dummy = LCD_ReadData(); 
@@ -583,7 +583,25 @@ void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t
     LCD_SetPoint(x0,y0,color);
 	}
 } 
+void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out_color)
+{
+  LCD_DrawLine(Xpos-15,Ypos,Xpos-2,Ypos,in_color);
+  LCD_DrawLine(Xpos+2,Ypos,Xpos+15,Ypos,in_color);
+  LCD_DrawLine(Xpos,Ypos-15,Xpos,Ypos-2,in_color);
+  LCD_DrawLine(Xpos,Ypos+2,Xpos,Ypos+15,in_color);
+  
+  LCD_DrawLine(Xpos-15,Ypos+15,Xpos-7,Ypos+15,out_color);
+  LCD_DrawLine(Xpos-15,Ypos+7,Xpos-15,Ypos+15,out_color);
 
+  LCD_DrawLine(Xpos-15,Ypos-15,Xpos-7,Ypos-15,out_color);
+  LCD_DrawLine(Xpos-15,Ypos-7,Xpos-15,Ypos-15,out_color);
+
+  LCD_DrawLine(Xpos+7,Ypos+15,Xpos+15,Ypos+15,out_color);
+  LCD_DrawLine(Xpos+15,Ypos+7,Xpos+15,Ypos+15,out_color);
+
+  LCD_DrawLine(Xpos+7,Ypos-15,Xpos+15,Ypos-15,out_color);
+  LCD_DrawLine(Xpos+15,Ypos-15,Xpos+15,Ypos-7,out_color);
+}
 /******************************************************************************
 * Function Name  : PutChar
 * Description    : 
@@ -689,7 +707,7 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
 }
 
 /******************************************************************************
-* Function Name  : GUI_Text
+* Function Name  : LCD_Text
 * Description    : 
 * Input          : - Xpos: 
 *                  - Ypos: 
@@ -701,12 +719,12 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
 * Attention		 : None
 *******************************************************************************/
 
-void GUI_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color)
+void LCD_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color)
 {
-	GUI_TextFont(Xpos, Ypos, str, Color, MS_GOTHIC_8x16);
+	LCD_TextFont(Xpos, Ypos, str, Color, MS_GOTHIC_8x16);
 
 }
-void GUI_TextFont(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color, uint16_t FONTx)
+void LCD_TextFont(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color, uint16_t FONTx)
 {
     uint8_t TempChar;
 
@@ -731,4 +749,3 @@ void GUI_TextFont(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color, ui
     }
     while ( *str != 0 );
 }
-

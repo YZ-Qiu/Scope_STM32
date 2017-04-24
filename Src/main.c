@@ -39,6 +39,8 @@
 
 #include "delay.h"
 #include "LCD.h"
+#include "Tpad.h"
+
 
 #ifdef __GNUC__
   /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
@@ -88,7 +90,6 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-
   
   /* Configure the system clock */
   SystemClock_Config();
@@ -96,33 +97,32 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
  
-
- MX_RNG_Init();
+  MX_RNG_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
-  LCD_Initializtion();
-  
 
+  LCD_Initializtion();
+  Tpad_Init();
   /* USER CODE END 2 */
-  GUI_TextFont(10, 10, "STM32F4-Discovery board", Green,SYSTEM_8x16);
+
+	LCD_TextFont(10, 10,"STM32F4-Discovery board", Green,SYSTEM_8x16);
   
-  GUI_TextFont(10, 30, "Running @ 168 MHz", Green,SYSTEM_8x16);
-  GUI_TextFont(10, 50, "SSD1289 320x240 GLCD", Green, SYSTEM_8x16);
-  GUI_TextFont(10, 70, "XPT2046 Touchscreen", Green, SYSTEM_8x16);
-  GUI_TextFont(10, 130, "Demo routine...", Green, FONT8x8);
-  GUI_TextFont(10, 210, "(C) 2013 Fabio Angeletti", Green, FONT6x8);
+  LCD_TextFont(10, 30, "Running @ 168 MHz", Green,SYSTEM_8x16);
+  LCD_TextFont(10, 50, "SSD1289 320x240 GLCD", Green, SYSTEM_8x16);
+  LCD_TextFont(10, 70, "XPT2046 Touchscreen", Green, SYSTEM_8x16);
+  LCD_TextFont(10, 130, "Demo routine...", Green, FONT8x8);
+  LCD_TextFont(10, 210, "(C) 2013 Fabio Angeletti", Green, FONT6x8);
 
 
 
  
-  delay(10000);
-  LCD_Clear(Green);
   
    Clr_Backlight;
    delay(500);
    Set_Backlight;
    delay(5000);
 
+  Tpad_Calibrate();
   
  /* Infinite loop */
   while (1)	

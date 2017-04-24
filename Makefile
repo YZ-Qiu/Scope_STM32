@@ -2,6 +2,7 @@ PROJECT = FUJIscope
 ######################################
 # building variables
 ######################################
+HIDE_WARNING = 1
 # debug build?
 DEBUG = 1
 # optimization
@@ -58,6 +59,10 @@ CFLAGS = -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard $(C_DEFS) $(
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
 endif
+ifeq ($(HIDE_WARNING), 1)
+CFLAGS += -w
+endif
+
 # Generate dependency information
 CFLAGS += -std=c99 -MD -MP -MF .dep/$(@F).d
 
