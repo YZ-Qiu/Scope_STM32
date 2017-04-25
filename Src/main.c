@@ -138,7 +138,69 @@ int main(void)
  /* Infinite loop */
   while (1)	
   {
+uint16_t x_a, x_b, y_a, y_b, color;
 
+    // ASCII ART
+    LCD_TextFont(0,0,  "                                   V8  ", Red,FONT8x8);
+    LCD_TextFont(0,8,  "                                 LR 4Y ", Red,FONT8x8);
+    LCD_TextFont(0,16, "                7GEMMMRI        M7   M ", Red,FONT8x8);
+    LCD_TextFont(0,24, "             7MU7      7M      M     U ", Red,FONT8x8);
+    LCD_TextFont(0,32, "           7M7 2C177G    M    D775   7 ", Red,FONT8x8);
+    LCD_TextFont(0,40, "          XT Y7      6   M    G GY    7", Red,FONT8x8);
+    LCD_TextFont(0,48, "         M77U   01       M   M  Y1    7", Red,FONT8x8);
+    LCD_TextFont(0,56, "        M 37  47     L  Z  C X         ", Red,FONT8x8);
+    LCD_TextFont(0,64, "       8 7  97      T   P  Z7        7 ", Red,FONT8x8);
+    LCD_TextFont(0,72, "       Q 3 Z       R   M   NZ        9 ", Red,FONT8x8);
+    LCD_TextFont(0,80, "      M 6 7      Y7   E   X M        9 ", Red,FONT8x8);
+    LCD_TextFont(0,88, "      1 5 W  7T47   7I   B  M       G  ", Red,FONT8x8);
+    LCD_TextFont(0,96, "     A  7 A        N  7 M   Q      I7  ", Red,FONT8x8);
+    LCD_TextFont(0,104,"     E 7  G      G7 7  M    J     76   ", Red,FONT8x8);
+    LCD_TextFont(0,112,"     K C  71  6X7  A 0U    77     P    ", Red,FONT8x8);
+    LCD_TextFont(0,120,"     T 7    7    I1 M      S     M     ", Red,FONT8x8);
+    LCD_TextFont(0,128,"        I      1R TM            M      ", Red,FONT8x8);
+    LCD_TextFont(0,136,"         D777AF  M7            M 7     ", Red,FONT8x8);
+    LCD_TextFont(0,144,"               M9             N  7C    ", Red,FONT8x8);
+    LCD_TextFont(0,152,"  WT7M2    7DM9              A2   R    ", Red,FONT8x8);
+    LCD_TextFont(0,160,"      DMMMZ7     7   7      7F     M   ", Red,FONT8x8);
+    LCD_TextFont(0,168,"                M   7      7K       N  ", Red,FONT8x8);
+    LCD_TextFont(0,176,"   7            G   G     7E     M  77 ", Red,FONT8x8);
+    LCD_TextFont(0,184,"   D  7        V   B     58       M7 H ", Red,FONT8x8);
+    LCD_TextFont(0,192,"   M C7        M  L    7G          Q87Y", Red,FONT8x8);
+    LCD_TextFont(0,200,"   M M    XV67 E  K   7             IEM", Red,FONT8x8);
+    LCD_TextFont(0,208,"   DM          9 M                   7M", Red,FONT8x8);
+    LCD_TextFont(0,216,"    E          13I                     ", Red,FONT8x8);
+    LCD_TextFont(0,224,"               UM                      ", Red,FONT8x8);
+    LCD_TextFont(0,232,"               M                       ", Red,FONT8x8);
+    LCD_TextFont(0,240,"               7                       ", Red,FONT8x8);
+
+    delay(250);
+    while(Tpad_Pressed());
+    LCD_Clear(Black);
+    delay(250);
+	    // CIRCLEs
+		// 
+    for(;;)
+    {
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
+
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
+
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
+
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      color=HAL_RNG_GetRandomNumber(&hrng);
+
+      LCD_FillCircle(x_a, y_a, x_b, color);
+      delay(10);
+      if(!Tpad_Pressed())
+        break;
+    }
+
+    LCD_Clear(Black);
+    delay(250);
   }
 
   /* USER CODE END 3 */

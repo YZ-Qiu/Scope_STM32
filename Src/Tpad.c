@@ -278,7 +278,7 @@ GPIO_PinState read_IRQ(void)
   return HAL_GPIO_ReadPin(Tpad_PORT, Tpad_IRQ_PIN);
 }
 
-GPIO_PinState Tpad_Is_Pressed(void)
+GPIO_PinState Tpad_Pressed(void)
 {
   return read_IRQ();
 }
@@ -287,7 +287,6 @@ static void WR_CMD (uint16_t cmd)
 { 
 
   /* Send SPI3 data */ 
-  //while writable?
 	uint8_t in_data;
    HAL_SPI_TransmitReceive(&hspi3,&cmd ,  &in_data, sizeof(uint16_t), 100);
 

@@ -582,7 +582,139 @@ void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t
     } 
     LCD_SetPoint(x0,y0,color);
 	}
-} 
+}
+void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
+{
+	int16_t f = 1 - r;
+    int16_t ddF_x = 1;
+    int16_t ddF_y = -2 * r;
+    int16_t x = 0;
+    int16_t y = r;
+  
+    LCD_SetPoint(x0, y0+r, color);
+    LCD_SetPoint(x0, y0-r, color);
+    LCD_SetPoint(x0+r, y0, color);
+    LCD_SetPoint(x0-r, y0, color);
+
+    while (x < y) {
+        if (f >= 0) {
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
+        }
+        x++;
+        ddF_x += 2;
+        f += ddF_x;
+
+        LCD_SetPoint(x0 + x, y0 + y, color);
+        LCD_SetPoint(x0 - x, y0 + y, color);
+        LCD_SetPoint(x0 + x, y0 - y, color);
+        LCD_SetPoint(x0 - x, y0 - y, color);
+    
+        LCD_SetPoint(x0 + y, y0 + x, color);
+        LCD_SetPoint(x0 - y, y0 + x, color);
+        LCD_SetPoint(x0 + y, y0 - x, color);
+        LCD_SetPoint(x0 - y, y0 - x, color);
+    }
+}
+
+void LCD_FillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
+{
+	int16_t f = 1 - r;
+    int16_t ddF_x = 1;
+    int16_t ddF_y = -2 * r;
+    int16_t x = 0;
+    int16_t y = r;
+
+    int16_t i;
+
+    for (i=y0-r; i<=y0+r; i++)
+        LCD_SetPoint(x0, i, color);
+
+    while (x < y) {
+        if (f >= 0) {
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
+        }
+        x++;
+        ddF_x += 2;
+        f += ddF_x;
+  
+        for (i=y0-y; i<=y0+y; i++) {
+            LCD_SetPoint(x0+x, i, color);
+            LCD_SetPoint(x0-x, i, color);
+        } 
+        for (i=y0-x; i<=y0+x; i++) {
+            LCD_SetPoint(x0+y, i, color);
+            LCD_SetPoint(x0-y, i, color);
+        }    
+    }
+}
+
+void LCD_DrawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
+{
+	if (x > MAX_X)
+		x = MAX_X;
+	if (y > MAX_Y)
+		y = MAX_Y;
+
+	if ((x+w) > MAX_X)
+		w = MAX_X - x;
+
+	if ((y+h) > MAX_Y)
+		h = MAX_Y - y;
+
+	LCD_DrawLine(x, y, x, y+h, color);
+	LCD_DrawLine(x, y, x+w, y, color);
+	LCD_DrawLine(x+w, y+h, x, y+h, color);
+	LCD_DrawLine(x+w, y+h, x+w, y, color);
+}
+
+void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
+{
+	uint16_t x_index, y_index;
+
+	if (x > MAX_X)
+		x = MAX_X;
+	if (y > MAX_Y)
+		y = MAX_Y;
+
+	if ((x+w) > MAX_X)
+		w = MAX_X - x;
+
+	if ((y+h) > MAX_Y)
+		h = MAX_Y - y;
+
+	for(x_index = x; x_index < x+w; x_index++)
+	{
+		for(y_index = y; y_index < y+h; y_index++)
+		{
+			LCD_SetPoint(x_index, y_index, color);
+		}
+	}
+
+}
+
+void LCD_DrawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
+{
+	if (x0 > MAX_X)
+		x0 = MAX_X;
+	if (y0 > MAX_Y)
+		y0 = MAX_Y;
+	if (x1 > MAX_X)
+		x1 = MAX_X;
+	if (y1 > MAX_Y)
+		y1 = MAX_Y;
+	if (x2 > MAX_X)
+		x2 = MAX_X;
+	if (y2 > MAX_Y)
+		y2 = MAX_Y;
+
+	LCD_DrawLine(x0, y0, x1, y1, color);
+	LCD_DrawLine(x0, y0, x2, y2, color);
+	LCD_DrawLine(x2, y2, x1, y1, color);
+}
 void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out_color)
 {
   LCD_DrawLine(Xpos-15,Ypos,Xpos-2,Ypos,in_color);

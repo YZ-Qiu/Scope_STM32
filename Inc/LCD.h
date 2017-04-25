@@ -125,7 +125,17 @@ void LCD_Clear(uint16_t Color);
 uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos);
 void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point);
 void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t color );
+void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
+	// draws a filled circle with center x0,y0 radius r and selected color
+void LCD_FillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
+	// draws a rectangle starting at x,y with width w and height h with selected color
+void LCD_DrawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+	// draws a filled rectangle starting at x,y with width w and height h with selected color
+void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+	// draws a triangle with coordinates x0,y0 x1,y1 x2,y2 with selected color
+void LCD_DrawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
 void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out_color);
+
 void PutChinese(uint16_t Xpos,uint16_t Ypos,uint8_t *str,uint16_t Color,uint16_t bkColor); 
 
 void cleanPutChar( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor);

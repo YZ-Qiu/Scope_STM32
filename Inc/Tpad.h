@@ -59,7 +59,7 @@ void Tpad_Init(void);
 	// calibration routine	
 void Tpad_Calibrate(void);
 	// returns if a pressure is present
-GPIO_PinState Tpad_Is_Pressed(void);
+GPIO_PinState Tpad_Pressed(void);
 	// returns coordinates of the pressure
 Coordinate *Read_Tpad(void);
 
