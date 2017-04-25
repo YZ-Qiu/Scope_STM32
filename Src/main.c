@@ -104,7 +104,7 @@ int main(void)
 
   LCD_Initializtion();
   Tpad_Init();
-    /*
+   /* 
 	LCD_Clear(Red);
 	delay(5000);
 	LCD_Clear(Green);
@@ -201,9 +201,31 @@ uint16_t x_a, x_b, y_a, y_b, color;
 
     LCD_Clear(Black);
     delay(250);
-  }
+	    // RECTs
+    for(;;)
+    {
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
 
-  /* USER CODE END 3 */
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
+
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      y_b=HAL_RNG_GetRandomNumber(&hrng)%128;
+
+      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+      color=HAL_RNG_GetRandomNumber(&hrng);
+
+      LCD_FillRect(x_a, y_a, x_b,y_b, color);
+      delay(10);
+      if(!Tpad_Pressed())
+        break;
+    }
+  }
+    LCD_Clear(Black);
+    delay(250);  /* USER CODE END 3 */
 
 }
 

@@ -75,15 +75,15 @@ uint16_t Read_X(void)
 
 uint16_t Read_Y(void)  
 {  
-  uint16_t curr_Y; 
+  uint16_t cur_Y; 
 
   reset_CS(); 
   delay(1); 
   WR_CMD(CHY); 
   delay(1); 
-  curr_Y=RD_AD(); 
+  cur_Y=RD_AD(); 
   set_CS(); 
-  return curr_Y;     
+  return cur_Y;     
 } 
 
 void Tpad_GetAdXY(int *x,int *y)  
@@ -248,7 +248,10 @@ void Tpad_Calibrate(void)
   for(i=0;i<3;i++)
   {
    LCD_Clear(Black);
+
+   
    LCD_Text(44,10,"Touch crosshair to calibrate",Red);
+   
    delay(250);
    LCD_DrawCross(DisplaySample[i].x,DisplaySample[i].y, Red, RGB565CONVERT(184,158,131));
    do
@@ -256,10 +259,46 @@ void Tpad_Calibrate(void)
      Ptr = Read_Tpad();
    }
    while( Ptr == (void*)0 );
-   ScreenSample[i].x= Ptr->x; ScreenSample[i].y= Ptr->y;
+   
+   ScreenSample[i].x= Ptr->x;
+   ScreenSample[i].y= Ptr->y;
+   char str[4]; 
+   sprintf( str, "x=%d",ScreenSample[i].x);
+
+   LCD_TextFont(30, 90,str, Green, FONT6x8);
+   sprintf( str, "y=%d",ScreenSample[i].y);
+
+   LCD_TextFont(30, 110,str, Green, FONT6x8);
+   delay(1000);
   }
+ 
   setCalibrationMatrix( &DisplaySample[0],&ScreenSample[0],&matrix );
   LCD_Clear(Black);
+
+   for(;;)
+  {
+   LCD_Clear(Black);
+   LCD_Text(44,10,"Test coord",Red);
+   delay(250);
+   do
+   {
+     Ptr = Read_Tpad();
+   }
+   while( Ptr == (void*)0 );
+   
+   char str[32];
+  // getDisplayPoint( &display,&ScreenSample[0],&matrix );
+    display.x= Ptr->x;
+   display.y= Ptr->y;
+  
+   sprintf( str, "x=%d",display.x);
+   LCD_TextFont(30, 90,str, Green, FONT6x8);
+   sprintf( str, "y=%d",display.y);
+
+   LCD_TextFont(30, 110,str, Green, FONT6x8);
+   delay(1000);
+  }
+  
 } 
 
 static void set_CS(void)
@@ -283,13 +322,12 @@ GPIO_PinState Tpad_Pressed(void)
   return read_IRQ();
 }
 
-static void WR_CMD (uint16_t cmd)  
+static void WR_CMD (uint8_t cmd)  
 { 
 
   /* Send SPI3 data */ 
 	uint8_t in_data;
-   HAL_SPI_TransmitReceive(&hspi3,&cmd ,  &in_data, sizeof(uint16_t), 100);
-
+   HAL_SPI_TransmitReceive(&hspi3,&cmd ,  &in_data,sizeof(uint16_t), 100);
 
  //   LCD_DrawCross(160,120, Green, RGB565CONVERT(184,158,131));
 	
@@ -297,13 +335,14 @@ static void WR_CMD (uint16_t cmd)
  	
 
 } 
-static uint16_t RD_AD(void)  
-{ 
-  uint16_t buf, temp; 
-  
+static int RD_AD(void)  
+{
+	//unsigned short = 16 bit
+ // uint16_t  buf, temp; 
+  unsigned short buf, temp;
   HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &temp, sizeof(uint16_t), 100);
 
-  buf=temp<<8; 
+  buf=(temp<<8); 
   delay(1);
 
 

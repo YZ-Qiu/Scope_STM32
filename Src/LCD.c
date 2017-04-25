@@ -78,19 +78,19 @@ static void LCD_Configuration(void)
 	
 	    /* configure DATA PORT  pins*/             
 	GPIO_InitStructure.Pin = GPIO_PIN_All;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
 	HAL_GPIO_Init(ILI9325_DATA_PORT, &GPIO_InitStructure);
 
     /* configure CONTROL PORT pins */
 	GPIO_InitStructure.Pin = ILI9325_RESET_PIN | ILI9325_nWR_PIN | ILI9325_nRD_PIN | ILI9325_CS_PIN | ILI9325_RS_PIN;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP ;
 	HAL_GPIO_Init(ILI9325_CTRL_PORT, &GPIO_InitStructure);
 	
     /* configure BACKLIGHT pin */
 	GPIO_InitStructure.Pin = ILI9325_BACKLIGHT_PIN;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP ;
 	HAL_GPIO_Init(ILI9325_BACKLIGHT_PORT, &GPIO_InitStructure);
 }
