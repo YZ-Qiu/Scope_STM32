@@ -99,11 +99,21 @@ int main(void)
  
   MX_RNG_Init();
   MX_SPI3_Init();
+
   /* USER CODE BEGIN 2 */
 
   LCD_Initializtion();
   Tpad_Init();
-  /* USER CODE END 2 */
+    /*
+	LCD_Clear(Red);
+	delay(5000);
+	LCD_Clear(Green);
+	delay(5000);
+	LCD_Clear(Blue);
+	delay(5000);
+	 */
+  
+/* USER CODE END 2 */
 
 	LCD_TextFont(10, 10,"STM32F4-Discovery board", Green,SYSTEM_8x16);
   
@@ -120,14 +130,15 @@ int main(void)
    Clr_Backlight;
    delay(500);
    Set_Backlight;
-   delay(5000);
+   delay(3000);
 
   Tpad_Calibrate();
+  LCD_Clear(Black);
   
  /* Infinite loop */
   while (1)	
   {
-  //  getDisplayPoint(&display, Read_Ads7846(), &matrix ) ;
+
   }
 
   /* USER CODE END 3 */

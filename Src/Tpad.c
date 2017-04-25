@@ -20,28 +20,36 @@ void Tpad_Init(void)
   //RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 
   /* Configure SPI3 pins: SCK, MISO and MOSI ---------------------------------*/ 
-  //see spi.c
-/*  GPIO_InitStruct.Pin = Tpad_SCK_PIN | Tpad_MISO_PIN | Tpad_MOSI_PIN;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Speed =  GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
+
+  if((&hspi3)->Instance==SPI3)
+  {
+	/* Peripheral clock enable */
+	__HAL_RCC_SPI3_CLK_ENABLE();
+
+
+/* see spi.c ( HAL_SPI_MspInit will be called)
+	GPIO_InitStruct.Pin = Tpad_SCK_PIN|Tpad_MISO_PIN|Tpad_MOSI_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
+	HAL_GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
 */
-  /* TP_CS */
-  GPIO_InitStruct.Pin = Tpad_CS_PIN;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
+	/* TP_CS */
+	GPIO_InitStruct.Pin = Tpad_CS_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
 
-  /* TP_IRQ */
-  GPIO_InitStruct.Pin =  Tpad_IRQ_PIN;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
+	/* TP_IRQ */
+	GPIO_InitStruct.Pin =  Tpad_IRQ_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
 
-  
+  }
   set_CS(); 
 
   /* Configure SPI -----------------------------------------------------------*/
@@ -51,15 +59,18 @@ void Tpad_Init(void)
 
 uint16_t Read_X(void)  
 {  
-  uint16_t curr_X;
+  uint16_t cur_X;
 
   reset_CS(); 
   delay(1); 
   WR_CMD(CHX); 
   delay(1); 
-  curr_X=RD_AD(); 
-  set_CS(); 
-  return curr_X;    
+
+  cur_X=RD_AD(); 
+  set_CS();
+
+ 
+  return cur_X;    
 } 
 
 uint16_t Read_Y(void)  
@@ -97,10 +108,16 @@ Coordinate *Read_Tpad(void)
     Tpad_GetAdXY(TP_X,TP_Y);  
 	  buffer[0][count]=TP_X[0];  
 	  buffer[1][count]=TP_Y[0];
-	  count++;  
+	  count++; 
+
+
   }
   while(!read_IRQ()&& count<9);  /* TP_INT_IN  */
-  if(count==9)   /* Average X Y  */ 
+  
+//  LCD_DrawCross(160,120, Green, RGB565CONVERT(184,158,131));
+ 
+
+ if(count==9)   /* Average X Y  */ 
   {
 	/* Average X  */
   temp[0]=(buffer[0][0]+buffer[0][1]+buffer[0][2])/3;
@@ -256,51 +273,45 @@ static void reset_CS(void)
 
 }
 
-static uint16_t read_IRQ(void)
+GPIO_PinState read_IRQ(void)
 {
-  return ((uint16_t)Tpad_PORT->IDR);
+  return HAL_GPIO_ReadPin(Tpad_PORT, Tpad_IRQ_PIN);
 }
 
-uint16_t Tpad_Press(void)
+GPIO_PinState Tpad_Is_Pressed(void)
 {
   return read_IRQ();
 }
 
 static void WR_CMD (uint16_t cmd)  
 { 
-  /* Wait for SPI3 Tx buffer empty */ 
-  while (SPI_I2S_GetFlagStatus(SPI3, SPI_FLAG_TXE) == RESET); 
-  /* Send SPI3 data */ 
-  SPI_I2S_SendData(SPI3,cmd); 
-  /* Wait for SPI3 data reception */ 
-  while (SPI_I2S_GetFlagStatus(SPI3, SPI_FLAG_RXNE) == RESET); 
-  /* Read SPI3 received data */ 
-  SPI_I2S_ReceiveData(SPI3); 
-} 
 
+  /* Send SPI3 data */ 
+  //while writable?
+	uint8_t in_data;
+   HAL_SPI_TransmitReceive(&hspi3,&cmd ,  &in_data, sizeof(uint16_t), 100);
+
+
+ //   LCD_DrawCross(160,120, Green, RGB565CONVERT(184,158,131));
+	
+ //  delay(1000);
+ 	
+
+} 
 static uint16_t RD_AD(void)  
 { 
-  SPI_HandleTypeDef hspi3;
   uint16_t buf, temp; 
-  /* Wait for SPI3 Tx buffer empty */ 
-  while (HAL_SPI_GetState(&hspi3) ==  HAL_SPI_STATE_RESET); 
-  /* Send SPI3 data */ 
-  SPI_I2S_SendData(SPI3,0x0000); 
-  /* Wait for SPI3 data reception */ 
-  while (HAL_SPI_GetState(&hspi3) ==  HAL_SPI_STATE_RESET); 
-  /* Read SPI3 received data */ 
-  temp=SPI_I2S_ReceiveData(SPI3); 
+  
+  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &temp, sizeof(uint16_t), 100);
+
   buf=temp<<8; 
-  Delay(1); 
-  while (HAL_SPI_GetState(&hspi3) ==  HAL_SPI_STATE_RESET); 
-  /* Send SPI3 data */ 
-  SPI_I2S_SendData(SPI3,0x0000); 
-  /* Wait for SPI3 data reception */ 
-  while (HAL_SPI_GetState(&hspi3) ==  HAL_SPI_STATE_RESET); 
-  /* Read SPI3 received data */ 
-  temp=SPI_I2S_ReceiveData(SPI3); 
+  delay(1);
+
+
+  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &temp, sizeof(uint16_t), 100);
+  
   buf |= temp; 
-  buf>>=3; 
+  buf>>=3; //buf = buf >> 3
   buf&=0xfff; 
   return buf;  
 }

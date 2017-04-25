@@ -134,8 +134,8 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
 void putChar(uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t bkColor);
 void putCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t bkColor, uint16_t FONTx);
 
-void LCD_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color);
-void LCD_TextFont(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color, uint16_t FONTx);
+void LCD_Text(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color);
+void LCD_TextFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx);
 
 void LCD_Chinese(uint16_t Xpos, uint16_t Ypos, uint8_t *str,uint16_t Color, uint16_t bkColor);	
 void LCD_DrawPicture(uint16_t StartX,uint16_t StartY,uint16_t EndX,uint16_t EndY,uint16_t *pic);

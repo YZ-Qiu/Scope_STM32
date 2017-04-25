@@ -45,18 +45,13 @@ extern Coordinate ScreenSample[3];
 extern Coordinate DisplaySample[3];
 extern Matrix matrix ;
 extern Coordinate  display ;
-
+extern SPI_HandleTypeDef hspi3;
+  
 /* Private define ------------------------------------------------------------*/
 
 #define	CHX 	0x90
 #define	CHY 	0xD0
 
-#define Tpad_PORT		     GPIOB
-#define Tpad_MISO_PIN	  GPIO_PIN_4
-#define Tpad_MOSI_PIN	  GPIO_PIN_5
-#define Tpad_SCK_PIN      GPIO_PIN_3
-#define Tpad_CS_PIN		  GPIO_PIN_7
-#define Tpad_IRQ_PIN	  GPIO_PIN_6
 
 /* Private function prototypes -----------------------------------------------*/				
 	// controller initialization
@@ -64,7 +59,7 @@ void Tpad_Init(void);
 	// calibration routine	
 void Tpad_Calibrate(void);
 	// returns if a pressure is present
-uint16_t Tpad_Press(void);
+GPIO_PinState Tpad_Is_Pressed(void);
 	// returns coordinates of the pressure
 Coordinate *Read_Tpad(void);
 
@@ -75,7 +70,7 @@ FunctionalState getDisplayPoint(Coordinate * displayPtr,Coordinate * screenPtr,M
 	// controller specific functions - should not be used outside
 static void set_CS(void);
 static void reset_CS(void);
-static uint16_t read_IRQ(void);
+GPIO_PinState read_IRQ(void);
 static void WR_CMD (uint16_t cmd);
 static uint16_t RD_AD(void);
 

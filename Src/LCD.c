@@ -719,14 +719,14 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
 * Attention		 : None
 *******************************************************************************/
 
-void LCD_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color)
+void LCD_Text(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color)
 {
 	LCD_TextFont(Xpos, Ypos, str, Color, MS_GOTHIC_8x16);
 
 }
-void LCD_TextFont(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color, uint16_t FONTx)
+void LCD_TextFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx)
 {
-    uint8_t TempChar;
+   char TempChar;
 
     do
     {
