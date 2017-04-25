@@ -2,7 +2,7 @@ PROJECT = FUJIscope
 ######################################
 # building variables
 ######################################
-HIDE_WARNING = 1
+HIDE_WARNING = 0
 # debug build?
 DEBUG = 1
 # optimization

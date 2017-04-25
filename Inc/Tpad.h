@@ -71,7 +71,7 @@ FunctionalState getDisplayPoint(Coordinate * displayPtr,Coordinate * screenPtr,M
 static void set_CS(void);
 static void reset_CS(void);
 GPIO_PinState read_IRQ(void);
-static void WR_CMD (uint8_t cmd);
-static int RD_AD(void);
+static void WR_CMD (uint16_t cmd);
+static uint16_t RD_AD(void);
 
 #endif
