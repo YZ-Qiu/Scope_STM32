@@ -277,7 +277,7 @@ void Tpad_Calibrate(void)
 
    for(;;)
   {
-   LCD_Clear(Black);
+  // LCD_Clear(Black);
    LCD_Text(44,10,"Test coord",Red);
    do
    {
@@ -287,14 +287,17 @@ void Tpad_Calibrate(void)
    
    getDisplayPoint( &display,Ptr,&matrix );
 
- // LCD_FillCircle(display.x, display.y, 3, Red);
-   char str[4];
+  LCD_FillCircle(display.x, display.y, 2, Red);
+  /*
+   char str[8];
    sprintf( str, "x=%d",Ptr->x);
    LCD_TextFont(30, 90,str, Green, FONT6x8);
    sprintf( str, "y=%d",Ptr->y);
+   
    LCD_TextFont(30, 110,str, Green, FONT6x8);
+
    delay(1000); 
-	 
+	 */
 
   
    
@@ -338,32 +341,7 @@ static void WR_CMD (uint16_t cmd)
 } 
 static uint16_t RD_AD(void)  
 {
-  // unsigned short = 16 bit
-  // uint16_t  buf, temp;
-  // sizeof(uint16_t) = 2
-  uint8_t tmp[2]; 
-  uint16_t buf;
-  uint16_t tmp_r;
-
-  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmp[0], sizeof(uint16_t), 100);
-
-  buf=((uint16_t)tmp[1])<<8;
-  delay(1);
-  
-
-
-  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmp[0], sizeof(uint16_t), 100);
-
-  buf |= (uint16_t)tmp[0]; 
-  buf>>=3; //buf = buf >> 3
-  buf&=0xfff; 
-/*
-   char str[32];
-   sprintf( str, "tmp0=%d",tmp[0]);
-   LCD_TextFont(30, 90,str, Green, FONT6x8);
-   sprintf( str, "tmp1=%d",tmp[1]);
-   LCD_TextFont(30, 110,str, Green, FONT6x8);
-   delay(5000);
-*/
-  return buf;  
+  uint16_t tmpr;
+  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmpr, sizeof(uint8_t), 100);
+  return (tmpr>>8);  
 }
