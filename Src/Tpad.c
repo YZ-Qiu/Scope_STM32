@@ -343,5 +343,8 @@ static uint16_t RD_AD(void)
 {
   uint16_t tmpr;
   HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmpr, sizeof(uint8_t), 100);
+  //this delay is neccessary
+  //this will prevent read previous data
+  delay(1);
   return (tmpr>>8);  
 }
