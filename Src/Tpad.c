@@ -60,16 +60,15 @@ void Tpad_Init(void)
 uint16_t Read_Reg(uint8_t addr)
 {
   uint16_t cur_X;
-
+//don't remove delay or it will cause noise touch
   reset_CS();
-
   delay(1);
   WR_CMD(addr);
   delay(1);
   cur_X=RD_AD();
   delay(1);
-
   set_CS();
+  delay(1);
 
 
   return cur_X;
@@ -79,31 +78,34 @@ void Tpad_GetAdXY(int *x,int *y)
 {
   uint16_t adx,ady;
   adx=Read_Reg(CHX);
-  delay(1);
   ady=Read_Reg(CHY);
   *x=adx;
   *y=ady;
 }
 
+/* Get continuous 9 (X,Y) coordinates from Tpad
+ * if touch counter < 9 point during press,
+ * this function will return 0
+ * and counter will reset to 0 as well
+ */
 Coordinate *Read_Tpad(void)
 {
-  static Coordinate  screen;
+  //boost up efficiency
+  if(!Tpad_Pressed())
+    return 0;
+
+  static Coordinate screen;
   int m0,m1,m2,TP_X[1],TP_Y[1],temp[3];
   uint8_t count=0;
   int buffer[2][9]={{0},{0}};
 
   do
   {
-    if(Tpad_Pressed())
-    {
       Tpad_GetAdXY(TP_X,TP_Y);
       buffer[0][count]=TP_X[0];
       buffer[1][count]=TP_Y[0];
       count++;
-	  }
-  }while(count<9);  /* TP_INT_IN  */
-
-//  LCD_DrawCross(160,120, Green, RGB565CONVERT(184,158,131));
+  }while(count < 9 && Tpad_Pressed());
 
 
  if(count==9)   /* Average X Y  */
@@ -118,7 +120,7 @@ Coordinate *Read_Tpad(void)
     m2=temp[2]-temp[0];
 
     m0=m0>0?m0:(-m0);
-      m1=m1>0?m1:(-m1);
+    m1=m1>0?m1:(-m1);
     m2=m2>0?m2:(-m2);
 
     if( m0>THRESHOLD  &&  m1>THRESHOLD  &&  m2>THRESHOLD ) return 0;
@@ -240,7 +242,6 @@ void Tpad_Calibrate(void)
 
 
    LCD_print(44,10,"Touch crosshair to calibrate");
-
    delay(250);
    LCD_DrawCross(DisplaySample[i].x,DisplaySample[i].y, Red, RGB565CONVERT(184,158,131));
    do
@@ -251,12 +252,11 @@ void Tpad_Calibrate(void)
 
    ScreenSample[i].x= Ptr->x;
    ScreenSample[i].y= Ptr->y;
+   //show sample value
    char str[4];
    sprintf( str, "x=%d",ScreenSample[i].x);
-
    LCD_print(30, 90,str);
    sprintf( str, "y=%d",ScreenSample[i].y);
-
    LCD_print(30, 110,str);
    delay(1000);
   }
@@ -264,6 +264,15 @@ void Tpad_Calibrate(void)
   setCalibrationMatrix( &DisplaySample[0],&ScreenSample[0],&matrix );
   LCD_Clear(Black);
 
+  //The code written below (in this function)is for testing , feel free to remove
+  char str[8];
+  for(;;)
+  {
+    LCD_Clear(Black);
+    sprintf( str, "x=%d",HAL_GetTick());
+    LCD_print(30, 90,str);
+    delay(100);
+  }
    for(;;)
   {
   // LCD_Clear(Black);
@@ -277,6 +286,7 @@ void Tpad_Calibrate(void)
    getDisplayPoint( &display,Ptr,&matrix );
 
   LCD_FillCircle(display.x, display.y, 2, Red);
+
   /*
    char str[8];
    sprintf( str, "x=%d",Ptr->x);
@@ -287,9 +297,6 @@ void Tpad_Calibrate(void)
 
    delay(1000);
 	 */
-
-
-
   }
 
 }
@@ -326,7 +333,7 @@ static void WR_CMD (uint16_t cmd)
 static uint16_t RD_AD(void)
 {
   uint16_t tmpr;
-  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmpr, sizeof(uint16_t), 10);
+  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmpr, sizeof(uint8_t), 10);
 
   //this delay is neccessary
   //this will prevent read previous data

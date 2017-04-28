@@ -22,21 +22,21 @@ I'm not the owner of the whole code
 #include "LCD.h"
 
 /* Private typedef -----------------------------------------------------------*/
-typedef	struct POINT 
+typedef	struct POINT
 {
    uint16_t x;
    uint16_t y;
 }Coordinate;
 
 
-typedef struct Matrix 
-{						
-long double An,  
-            Bn,     
-            Cn,   
-            Dn,    
-            En,    
-            Fn,     
+typedef struct Matrix
+{
+long double An,
+            Bn,
+            Cn,
+            Dn,
+            En,
+            Fn,
             Divider ;
 } Matrix ;
 
@@ -46,17 +46,17 @@ extern Coordinate DisplaySample[3];
 extern Matrix matrix ;
 extern Coordinate  display ;
 extern SPI_HandleTypeDef hspi3;
-  
+
 /* Private define ------------------------------------------------------------*/
 
 #define	CHX 	0x90
 #define	CHY 	0xD0
 
 
-/* Private function prototypes -----------------------------------------------*/				
+/* Private function prototypes -----------------------------------------------*/
 	// controller initialization
 void Tpad_Init(void);
-	// calibration routine	
+	// calibration routine
 void Tpad_Calibrate(void);
 	// returns if a pressure is present
 GPIO_PinState Tpad_Pressed(void);
