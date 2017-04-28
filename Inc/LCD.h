@@ -1,10 +1,10 @@
 /*********************************************************************************************************
 *
 * File                : LCD.h
-* Hardware Environment: 
+* Hardware Environment:
 * Build Environment   : RealView MDK-ARM  Version: 4.20
 * Version             : V1.0
-* By                  : 
+* By                  :
 *
 *                                  (c) Copyright 2005-2011, WaveShare
 *                                       http://www.waveshare.net
@@ -12,7 +12,7 @@
 *
 *********************************************************************************************************/
 
-#ifndef __GLCD_H 
+#ifndef __GLCD_H
 #define __GLCD_H
 
 /* Includes ------------------------------------------------------------------*/
@@ -43,12 +43,12 @@
 #if  ( DISP_ORIENTATION == 90 ) || ( DISP_ORIENTATION == 270 )
 
 #define  MAX_X  320
-#define  MAX_Y  240   
+#define  MAX_Y  240
 
 #elif  ( DISP_ORIENTATION == 0 ) || ( DISP_ORIENTATION == 180 )
 
 #define  MAX_X  240
-#define  MAX_Y  320   
+#define  MAX_Y  320
 
 #endif
 
@@ -105,6 +105,9 @@
 
 
 /* LCD color */
+#define Default_Color  Green
+#define Default_Font  Green
+
 #define White          0xFFFF
 #define Black          0x0000
 #define Grey           0xF7DE
@@ -120,7 +123,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void LCD_Initializtion(void);
-void LCD_Clear(uint16_t Color);	
+void LCD_Clear(uint16_t Color);
 //void LCD_SetBacklight(uint8_t intensity);
 uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos);
 void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point);
@@ -136,7 +139,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 void LCD_DrawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
 void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out_color);
 
-void PutChinese(uint16_t Xpos,uint16_t Ypos,uint8_t *str,uint16_t Color,uint16_t bkColor); 
+void PutChinese(uint16_t Xpos,uint16_t Ypos,uint8_t *str,uint16_t Color,uint16_t bkColor);
 
 void cleanPutChar( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor);
 void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t FONTx);
@@ -144,10 +147,12 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
 void putChar(uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t bkColor);
 void putCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t bkColor, uint16_t FONTx);
 
-void LCD_Text(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color);
-void LCD_TextFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx);
 
-void LCD_Chinese(uint16_t Xpos, uint16_t Ypos, uint8_t *str,uint16_t Color, uint16_t bkColor);	
+void LCD_print(uint16_t Xpos, uint16_t Ypos, char *str);
+void LCD_printColor(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color);
+void LCD_printColorFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx);
+
+void LCD_Chinese(uint16_t Xpos, uint16_t Ypos, uint8_t *str,uint16_t Color, uint16_t bkColor);
 void LCD_DrawPicture(uint16_t StartX,uint16_t StartY,uint16_t EndX,uint16_t EndY,uint16_t *pic);
 
 
@@ -159,7 +164,7 @@ __inline void LCD_WriteReg(uint16_t LCD_Reg,uint16_t LCD_RegValue);
 static void LCD_SetCursor( uint16_t Xpos, uint16_t Ypos );
 void delay_ms(uint16_t ms);
 
-#endif 
+#endif
 
 /*********************************************************************************************************
       END FILE

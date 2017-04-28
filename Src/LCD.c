@@ -1,10 +1,10 @@
 /*********************************************************************************************************
 *
 * File                : LCD.c
-* Hardware Environment: 
+* Hardware Environment:
 * Build Environment   : RealView MDK-ARM  Version: 4.20
 * Version             : V1.0
-* By                  : 
+* By                  :
 *
 *                                  (c) Copyright 2005-2011, WaveShare
 *                                       http://www.waveshare.net
@@ -13,7 +13,7 @@
 *********************************************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "LCD.h" 
+#include "LCD.h"
 
 #include "AsciiLib.h"
 #include "delay.h"
@@ -36,10 +36,10 @@ static uint8_t LCD_Code;
 #define  ST7781     6  /* 0x7783 */
 #define  LGDP4531   7  /* 0x4531 */
 #define  SPFD5408B  8  /* 0x5408 */
-#define  R61505U    9  /* 0x1505 0x0505 */	   
+#define  R61505U    9  /* 0x1505 0x0505 */
 #define  HX8347D    10 /* 0x0047 */
-#define  HX8347A    11 /* 0x0047 */	
-#define  LGDP4535   12 /* 0x4535 */  
+#define  HX8347A    11 /* 0x0047 */
+#define  LGDP4535   12 /* 0x4535 */
 #define  SSD2119    13 /* 3.5 LCD 0x9919 */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,13 +70,13 @@ void LCD_Delay(unsigned char i)
 static void LCD_Configuration(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	
+
 	/* Enable GPIOC and GPIOE clocks */
 	//don't need these code , will be written in gpio.c "GPIO_Init"
-//	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);  
+//	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
 
-	
-	    /* configure DATA PORT  pins*/             
+
+	    /* configure DATA PORT  pins*/
 	GPIO_InitStructure.Pin = GPIO_PIN_All;
 	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
@@ -87,7 +87,7 @@ static void LCD_Configuration(void)
 	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP ;
 	HAL_GPIO_Init(ILI9325_CTRL_PORT, &GPIO_InitStructure);
-	
+
     /* configure BACKLIGHT pin */
 	GPIO_InitStructure.Pin = ILI9325_BACKLIGHT_PIN;
 	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -98,7 +98,7 @@ static void LCD_Configuration(void)
 
 /*******************************************************************************
 * Function Name  : LCD_WriteReg
-* Description    : 
+* Description    :
 * Input          : - index:
 * Output         : None
 * Return         : None
@@ -117,7 +117,7 @@ __inline void LCD_WriteIndex(uint16_t index)
 
 /*******************************************************************************
 * Function Name  : LCD_WriteReg
-* Description    : 
+* Description    :
 * Input          : - index:
 * Output         : None
 * Return         : None
@@ -135,22 +135,22 @@ __inline void LCD_WriteData(uint16_t data)
 
 /*******************************************************************************
 * Function Name  : LCD_ReadData
-* Description    : 
+* Description    :
 * Input          : None
 * Output         : None
-* Return         : 
+* Return         :
 * Attention		 : None
 *******************************************************************************/
 __inline uint16_t LCD_ReadData(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure; 
+	GPIO_InitTypeDef GPIO_InitStructure;
 	uint16_t value;
 
 	Set_Rs;
 	Set_nWr;
 	Clr_nRd;
-    
-	//Set ALL data pin to input 
+
+	//Set ALL data pin to input
     GPIO_InitStructure.Pin = GPIO_PIN_All;
     GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
     GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
@@ -162,8 +162,8 @@ __inline uint16_t LCD_ReadData(void)
  	value = ((uint16_t)ILI9325_DATA_PORT->IDR);
  	value = ((uint16_t)ILI9325_DATA_PORT->IDR);
 
-	//Set ALL data pin to onput 
-    
+	//Set ALL data pin to onput
+
     GPIO_InitStructure.Pin = GPIO_PIN_All;
     GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
@@ -184,13 +184,13 @@ __inline uint16_t LCD_ReadData(void)
 * Attention		 : None
 *******************************************************************************/
 __inline void LCD_WriteReg(uint16_t LCD_Reg,uint16_t LCD_RegValue)
-{ 
-	/* Write 16-bit Index, then Write Reg */  
+{
+	/* Write 16-bit Index, then Write Reg */
 	Clr_Cs;
-	LCD_WriteIndex(LCD_Reg);         
+	LCD_WriteIndex(LCD_Reg);
 	/* Write 16-bit Reg */
-	LCD_WriteData(LCD_RegValue);  
-	Set_Cs; 
+	LCD_WriteData(LCD_RegValue);
+	Set_Cs;
 }
 
 /*******************************************************************************
@@ -204,12 +204,12 @@ __inline void LCD_WriteReg(uint16_t LCD_Reg,uint16_t LCD_RegValue)
 __inline uint16_t LCD_ReadReg(uint16_t LCD_Reg)
 {
 	uint16_t LCD_RAM;
-	
+
 	/* Write 16-bit Index (then Read Reg) */
 	Clr_Cs;
 	LCD_WriteIndex(LCD_Reg);
 	/* Read 16-bit Reg */
-	LCD_RAM = LCD_ReadData();      	
+	LCD_RAM = LCD_ReadData();
 	Set_Cs;
 	return LCD_RAM;
 }
@@ -218,17 +218,17 @@ static void LCD_SetCursor( uint16_t Xpos, uint16_t Ypos )
 {
 
 
-  	uint16_t temp;	
+  	uint16_t temp;
 
 	#if (DISP_ORIENTATION == 0)
-		
+
 	#elif (DISP_ORIENTATION == 90)
 		temp = Xpos;
 		Xpos = Ypos;
-		Ypos = MAX_X - 1 - temp;				
+		Ypos = MAX_X - 1 - temp;
 	#elif (DISP_ORIENTATION == 180)
-		Xpos = MAX_X - 1 - Xpos; 
-		Ypos = MAX_Y - 1 - Ypos; 
+		Xpos = MAX_X - 1 - Xpos;
+		Ypos = MAX_Y - 1 - Ypos;
 	#elif (DISP_ORIENTATION == 270)
 		temp = Ypos;
 		Ypos = Xpos;
@@ -238,19 +238,19 @@ static void LCD_SetCursor( uint16_t Xpos, uint16_t Ypos )
 
 	if (LCD_Code == LCD)
 	{
-	
-			 LCD_WriteReg(0x004e, Xpos);      
-      		 LCD_WriteReg(0x004f, Ypos);  
+
+			 LCD_WriteReg(0x004e, Xpos);
+      		 LCD_WriteReg(0x004f, Ypos);
 	}
 	else //9325
-	{     
-        		
-			LCD_WriteReg(0x0020, Xpos);    
-			LCD_WriteReg(0x0021, Ypos);    
+	{
+
+			LCD_WriteReg(0x0020, Xpos);
+			LCD_WriteReg(0x0021, Ypos);
 			//LCD_WriteIndex(0x0022);
-	}	
-	
-	
+	}
+
+
 }
 
 /*******************************************************************************
@@ -262,14 +262,14 @@ static void LCD_SetCursor( uint16_t Xpos, uint16_t Ypos )
 * Return         : None
 * Attention		 : None
 *******************************************************************************/
-void delay_ms(uint16_t ms)    
-{ 
-	uint16_t i,j; 
+void delay_ms(uint16_t ms)
+{
+	uint16_t i,j;
 	for( i = 0; i < ms; i++ )
-	{ 
+	{
 		for( j = 0; j < 1141; j++ );
 	}
-} 
+}
 
 /*******************************************************************************
 * Function Name  : LCD_Initializtion
@@ -284,15 +284,15 @@ void LCD_Initializtion(void)
 
 	LCD_Configuration();
 
-  //GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable , ENABLE); 
+  //GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable , ENABLE);
 
 	Clr_Reset;
-	
+
 	delay_ms(100);
 
   	Set_Reset;
   	Set_Backlight;
-	
+
 
 	/* Set MN(multipliers) of PLL, VCO = crystal freq * (N+1) */
 	/* PLL freq = VCO/M with 250MHz < VCO < 800MHz */
@@ -300,61 +300,61 @@ void LCD_Initializtion(void)
 
 
 		LCD_Code = ILI9325;
-		LCD_WriteReg(0x00e7,0x0010);      
+		LCD_WriteReg(0x00e7,0x0010);
 		LCD_WriteReg(0x0000,0x0001);  	/* start internal osc */
-		
+
 		LCD_WriteReg(0x0001,(0<<10)|(1<<8));
-	
+
 		LCD_WriteReg(0x0002,0x0700); 	/* power on sequence */
 	#if (DISP_ORIENTATION == 0)
 		LCD_WriteReg(0x0003,(1<<12)|(1<<5)|(1<<4)|(0<<3));
 	#elif (DISP_ORIENTATION == 90)
-		LCD_WriteReg(0x0003,(1<<12)|(0<<5)|(1<<4)|(1<<3));		
+		LCD_WriteReg(0x0003,(1<<12)|(0<<5)|(1<<4)|(1<<3));
 	#elif (DISP_ORIENTATION == 180)
 		LCD_WriteReg(0x0003,(1<<12)|(0<<5)|(0<<4)|(0<<3));
 	#elif (DISP_ORIENTATION == 270)
     LCD_WriteReg(0x0003,(1<<12)|(1<<5)|(0<<4)|(1<<3));
 	#endif
-		LCD_WriteReg(0x0004,0x0000);   
-		LCD_WriteReg(0x0008,0x0207);	           
-		LCD_WriteReg(0x0009,0x0000);         
-		LCD_WriteReg(0x000a,0x0000); 	/* display setting */        
-		LCD_WriteReg(0x000c,0x0001);	/* display setting */        
-		LCD_WriteReg(0x000d,0x0000); 			        
+		LCD_WriteReg(0x0004,0x0000);
+		LCD_WriteReg(0x0008,0x0207);
+		LCD_WriteReg(0x0009,0x0000);
+		LCD_WriteReg(0x000a,0x0000); 	/* display setting */
+		LCD_WriteReg(0x000c,0x0001);	/* display setting */
+		LCD_WriteReg(0x000d,0x0000);
 		LCD_WriteReg(0x000f,0x0000);
 		/* Power On sequence */
-		LCD_WriteReg(0x0010,0x0000);   
+		LCD_WriteReg(0x0010,0x0000);
 		LCD_WriteReg(0x0011,0x0007);
-		LCD_WriteReg(0x0012,0x0000);                                                                 
-		LCD_WriteReg(0x0013,0x0000);                 
-		delay_ms(50);  /* delay 50 ms */		
-		LCD_WriteReg(0x0010,0x1590);   
+		LCD_WriteReg(0x0012,0x0000);
+		LCD_WriteReg(0x0013,0x0000);
+		delay_ms(50);  /* delay 50 ms */
+		LCD_WriteReg(0x0010,0x1590);
 		LCD_WriteReg(0x0011,0x0227);
-		delay_ms(50);  /* delay 50 ms */		
-		LCD_WriteReg(0x0012,0x009c);                  
-		delay_ms(50);  /* delay 50 ms */		
-		LCD_WriteReg(0x0013,0x1900);   
+		delay_ms(50);  /* delay 50 ms */
+		LCD_WriteReg(0x0012,0x009c);
+		delay_ms(50);  /* delay 50 ms */
+		LCD_WriteReg(0x0013,0x1900);
 		LCD_WriteReg(0x0029,0x0023);
 		LCD_WriteReg(0x002b,0x000e);
-		delay_ms(50);  /* delay 50 ms */		        
-		delay_ms(50);  /* delay 50 ms */		
-		LCD_WriteReg(0x0030,0x0007); 
-		LCD_WriteReg(0x0031,0x0707);   
+		delay_ms(50);  /* delay 50 ms */
+		delay_ms(50);  /* delay 50 ms */
+		LCD_WriteReg(0x0030,0x0007);
+		LCD_WriteReg(0x0031,0x0707);
 		LCD_WriteReg(0x0032,0x0006);
 		LCD_WriteReg(0x0035,0x0704);
-		LCD_WriteReg(0x0036,0x1f04); 
+		LCD_WriteReg(0x0036,0x1f04);
 		LCD_WriteReg(0x0037,0x0004);
-		LCD_WriteReg(0x0038,0x0000);        
-		LCD_WriteReg(0x0039,0x0706);     
+		LCD_WriteReg(0x0038,0x0000);
+		LCD_WriteReg(0x0039,0x0706);
 		LCD_WriteReg(0x003c,0x0701);
 		LCD_WriteReg(0x003d,0x000f);
-		delay_ms(50);  /* delay 50 ms */		
-		LCD_WriteReg(0x0050,0x0000);        
-		LCD_WriteReg(0x0051,0x00ef);   
-		LCD_WriteReg(0x0052,0x0000);     
+		delay_ms(50);  /* delay 50 ms */
+		LCD_WriteReg(0x0050,0x0000);
+		LCD_WriteReg(0x0051,0x00ef);
+		LCD_WriteReg(0x0052,0x0000);
 		LCD_WriteReg(0x0053,0x013f);
-		LCD_WriteReg(0x0060,0xa700);        
- 		LCD_WriteReg(0x0061,0x0001); 
+		LCD_WriteReg(0x0060,0xa700);
+ 		LCD_WriteReg(0x0061,0x0001);
 		LCD_WriteReg(0x006a,0x0000);
 		LCD_WriteReg(0x0080,0x0000);
 		LCD_WriteReg(0x0081,0x0000);
@@ -362,25 +362,25 @@ void LCD_Initializtion(void)
 		LCD_WriteReg(0x0083,0x0000);
 		LCD_WriteReg(0x0084,0x0000);
 		LCD_WriteReg(0x0085,0x0000);
-		LCD_WriteReg(0x0090,0x0010);     
-		LCD_WriteReg(0x0092,0x0600);  
+		LCD_WriteReg(0x0090,0x0010);
+		LCD_WriteReg(0x0092,0x0600);
 		LCD_WriteReg(0x0093,0x0003);
 		LCD_WriteReg(0x0095,0x0110);
-		LCD_WriteReg(0x0097,0x0000);        
-		LCD_WriteReg(0x0098,0x0000);  
-		/* display on sequence */    
-		LCD_WriteReg(0x0007,0x0133);	
-	 				
+		LCD_WriteReg(0x0097,0x0000);
+		LCD_WriteReg(0x0098,0x0000);
+		/* display on sequence */
+		LCD_WriteReg(0x0007,0x0133);
 
-        delay(50);  	
-					
+
+        delay(50);
+
 	   LCD_Clear(Black);
-    	delay(500);  	
+    	delay(500);
 }
 
 /*******************************************************************************
 * Function Name  : LCD_Clear
-* Description    : 
+* Description    :
 * Input          : - Color: Screen Color
 * Output         : None
 * Return         : None
@@ -389,9 +389,9 @@ void LCD_Initializtion(void)
 void LCD_Clear(uint16_t Color)
 {
 	uint32_t index=0;
-	
-	LCD_SetCursor(0,0); 
-	Clr_Cs; 
+
+	LCD_SetCursor(0,0);
+	Clr_Cs;
 	LCD_WriteIndex(0x0022);
 	for( index = 0; index < MAX_X * MAX_Y; index++ )
 	{
@@ -411,13 +411,13 @@ void LCD_Clear(uint16_t Color)
 static uint16_t LCD_BGR2RGB(uint16_t color)
 {
 	uint16_t  r, g, b, rgb;
-	
+
 	b = ( color>>0 )  & 0x1f;
 	g = ( color>>5 )  & 0x3f;
 	r = ( color>>11 ) & 0x1f;
-	
+
 	rgb =  (b<<11) + (g<<5) + (r<<0);
-	
+
 	return( rgb );
 }
 
@@ -425,7 +425,7 @@ static uint16_t LCD_BGR2RGB(uint16_t color)
 * Function Name  : LCD_GetPoint
 * Description    : Get color of the point
 * Input          : - Xpos: Row Coordinate
-*                  - Ypos: Line Coordinate 
+*                  - Ypos: Line Coordinate
 * Output         : None
 * Return         : Screen Color
 * Attention		 : None
@@ -433,11 +433,11 @@ static uint16_t LCD_BGR2RGB(uint16_t color)
 uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos)
 {
 	uint16_t dummy;
-	
+
 	LCD_SetCursor(Xpos,Ypos);
 	Clr_Cs;
-	LCD_WriteIndex(0x0022);  
-	
+	LCD_WriteIndex(0x0022);
+
 	switch( LCD_Code )
 	{
 		case ST7781:
@@ -446,33 +446,33 @@ uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos)
 		case LCD:
 		case SSD1298:
       dummy = LCD_ReadData();
-      dummy = LCD_ReadData(); 
-      Set_Cs;	
- 		  return  dummy;	      
+      dummy = LCD_ReadData();
+      Set_Cs;
+ 		  return  dummy;
     case HX8347A:
 	  case HX8347D:
     {
       uint8_t red,green,blue;
       red = LCD_ReadData()>>3;
-      green = LCD_ReadData()>>3; 
-      blue = LCD_ReadData()>>2; 
+      green = LCD_ReadData()>>3;
+      blue = LCD_ReadData()>>2;
       dummy = ( green << 11 ) | (blue << 5 ) | red;
 		}
-      Set_Cs;	
+      Set_Cs;
       return  dummy;
     default:	/* 0x9320 0x9325 0x9328 0x9331 0x5408 0x1505 0x0505 0x9919 */
       dummy = LCD_ReadData();
-      dummy = LCD_ReadData(); 
-      Set_Cs;	
+      dummy = LCD_ReadData();
+      Set_Cs;
       return  LCD_BGR2RGB( dummy );
 	}
 }
 
 /******************************************************************************
 * Function Name  : LCD_SetPoint
-* Description    : 
+* Description    :
 * Input          : - Xpos: Row Coordinate
-*                  - Ypos: Line Coordinate 
+*                  - Ypos: Line Coordinate
 * Output         : None
 * Return         : None
 * Attention		 : None
@@ -500,7 +500,7 @@ void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point)
 * Output         : None
 * Return         : None
 * Attention		 : None
-*******************************************************************************/	 
+*******************************************************************************/
 void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t color )
 {
   short dx,dy;
@@ -510,13 +510,13 @@ void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t
   {
     temp = x1;
     x1 = x0;
-    x0 = temp;   
+    x0 = temp;
   }
   if( y0 > y1 )
   {
     temp = y1;
     y1 = y0;
-    y0 = temp;   
+    y0 = temp;
   }
 
   dx = x1-x0;
@@ -525,12 +525,12 @@ void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t
   if( dx == 0 )
   {
     do
-    { 
+    {
       LCD_SetPoint(x0, y0, color);
       y0++;
     }
-    while( y1 >= y0 ); 
-    return; 
+    while( y1 >= y0 );
+    return;
   }
   if( dy == 0 )
   {
@@ -539,7 +539,7 @@ void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t
       LCD_SetPoint(x0, y0, color);
       x0++;
     }
-    while( x1 >= x0 ); 
+    while( x1 >= x0 );
 		return;
   }
 
@@ -554,32 +554,32 @@ void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t
 	    if( temp > 0 )
 	    {
 	      y0++;
-	      temp += 2 * dy - 2 * dx; 
+	      temp += 2 * dy - 2 * dx;
 	 	  }
-      else         
+      else
       {
 			  temp += 2 * dy;
-			}       
+			}
     }
     LCD_SetPoint(x0,y0,color);
-  }  
+  }
   else
   {
     temp = 2 * dx - dy;
     while( y0 != y1 )
     {
-	 	  LCD_SetPoint(x0,y0,color);     
-      y0++;                 
-      if( temp > 0 )           
+	 	  LCD_SetPoint(x0,y0,color);
+      y0++;
+      if( temp > 0 )
       {
-        x0++;               
-        temp+=2*dy-2*dx; 
+        x0++;
+        temp+=2*dy-2*dx;
       }
       else
 			{
         temp += 2 * dy;
 			}
-    } 
+    }
     LCD_SetPoint(x0,y0,color);
 	}
 }
@@ -590,7 +590,7 @@ void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
     int16_t ddF_y = -2 * r;
     int16_t x = 0;
     int16_t y = r;
-  
+
     LCD_SetPoint(x0, y0+r, color);
     LCD_SetPoint(x0, y0-r, color);
     LCD_SetPoint(x0+r, y0, color);
@@ -610,7 +610,7 @@ void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
         LCD_SetPoint(x0 - x, y0 + y, color);
         LCD_SetPoint(x0 + x, y0 - y, color);
         LCD_SetPoint(x0 - x, y0 - y, color);
-    
+
         LCD_SetPoint(x0 + y, y0 + x, color);
         LCD_SetPoint(x0 - y, y0 + x, color);
         LCD_SetPoint(x0 + y, y0 - x, color);
@@ -640,15 +640,15 @@ void LCD_FillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
         x++;
         ddF_x += 2;
         f += ddF_x;
-  
+
         for (i=y0-y; i<=y0+y; i++) {
             LCD_SetPoint(x0+x, i, color);
             LCD_SetPoint(x0-x, i, color);
-        } 
+        }
         for (i=y0-x; i<=y0+x; i++) {
             LCD_SetPoint(x0+y, i, color);
             LCD_SetPoint(x0-y, i, color);
-        }    
+        }
     }
 }
 
@@ -721,7 +721,7 @@ void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out
   LCD_DrawLine(Xpos+2,Ypos,Xpos+15,Ypos,in_color);
   LCD_DrawLine(Xpos,Ypos-15,Xpos,Ypos-2,in_color);
   LCD_DrawLine(Xpos,Ypos+2,Xpos,Ypos+15,in_color);
-  
+
   LCD_DrawLine(Xpos-15,Ypos+15,Xpos-7,Ypos+15,out_color);
   LCD_DrawLine(Xpos-15,Ypos+7,Xpos-15,Ypos+15,out_color);
 
@@ -736,7 +736,7 @@ void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out
 }
 /******************************************************************************
 * Function Name  : PutChar
-* Description    : 
+* Description    :
 * Input          : - Xpos:
 *                  - Ypos:
 *				           - ASCI:
@@ -762,7 +762,7 @@ void putCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColo
     	case FONT6x8:
     		len_x = 6;
     		len_y = 8;
-    		break;    	
+    		break;
     	case FONT8x8:
     		len_x = 8;
     		len_y = 8;
@@ -810,7 +810,7 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
     	case FONT6x8:
     		len_x = 6;
     		len_y = 8;
-    		break;    	
+    		break;
     	case FONT8x8:
     		len_x = 8;
     		len_y = 8;
@@ -835,14 +835,14 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
             }
 
         }
-    }	
+    }
 }
 
 /******************************************************************************
 * Function Name  : LCD_Text
-* Description    : 
-* Input          : - Xpos: 
-*                  - Ypos: 
+* Description    :
+* Input          : - Xpos:
+*                  - Ypos:
 *				           - str:
 *				           - charColor:
 *				           - bkColor:
@@ -850,34 +850,44 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
 * Return         : None
 * Attention		 : None
 *******************************************************************************/
-
-void LCD_Text(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color)
+/*
+Available font type:
+    MS_GOTHIC_8x16
+    SYSTEM_8x16
+    FONT6x8
+    FONT8x8
+*/
+void LCD_print(uint16_t Xpos, uint16_t Ypos, char *str)
 {
-	LCD_TextFont(Xpos, Ypos, str, Color, MS_GOTHIC_8x16);
+	LCD_printColorFont(Xpos, Ypos, str, Default_Color , MS_GOTHIC_8x16);
+}
+void LCD_printColor(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color)
+{
+	LCD_printColorFont(Xpos, Ypos, str, Default_Color , MS_GOTHIC_8x16);
 
 }
-void LCD_TextFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx)
+void LCD_printColorFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx)
 {
    char TempChar;
 
     do
     {
-        TempChar = *str++;  
-        cleanPutCharFont( Xpos, Ypos, TempChar, Color, FONTx);    
+        TempChar = *str++;
+        cleanPutCharFont( Xpos, Ypos, TempChar, Color, FONTx);
         if( Xpos < MAX_X - 8 )
         {
             Xpos += 8;
-        } 
+        }
         else if ( Ypos < MAX_Y - 16 )
         {
             Xpos = 0;
             Ypos += 16;
-        }   
+        }
         else
         {
             Xpos = 0;
             Ypos = 0;
-        }    
+        }
     }
     while ( *str != 0 );
 }
