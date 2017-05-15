@@ -31,7 +31,6 @@
 *.x86_64
 *.hex
 file2c
-DR
 *.swp
 *.swo
 

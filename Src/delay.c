@@ -13,7 +13,6 @@ void TimeTick_Decrement(void) {
 }
 
 void delay(uint32_t n) {
-
 	sysTickCounter =n*3.2;
 	while (sysTickCounter) {
 	}

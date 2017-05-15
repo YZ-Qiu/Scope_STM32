@@ -266,13 +266,7 @@ void Tpad_Calibrate(void)
 
   //The code written below (in this function)is for testing , feel free to remove
   char str[8];
-  for(;;)
-  {
-    LCD_Clear(Black);
-    sprintf( str, "x=%d",HAL_GetTick());
-    LCD_print(30, 90,str);
-    delay(100);
-  }
+
    for(;;)
   {
   // LCD_Clear(Black);
