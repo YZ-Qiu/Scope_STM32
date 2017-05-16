@@ -33,13 +33,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+#include "adc.h"
+#include "dma.h"
 #include "rng.h"
 #include "spi.h"
 #include "gpio.h"
-
-#include "delay.h"
-#include "LCD.h"
-#include "Tpad.h"
 
 
 #ifdef __GNUC__
@@ -56,7 +55,9 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-
+ADC_HandleTypeDef hadc2;
+DMA_HandleTypeDef hdma_adc2;
+osThreadId UI_TaskHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -65,7 +66,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void Error_Handler(void);
-
+void MX_FREERTOS_Init(void);
 void Delayms(uint32_t millis);
 
 
@@ -96,9 +97,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-
+  MX_DMA_Init();
   MX_RNG_Init();
   MX_SPI3_Init();
+  MX_ADC1_Init();
 
   /* USER CODE BEGIN 2 */
 
@@ -115,86 +117,104 @@ int main(void)
 
 /* USER CODE END 2 */
 
-	LCD_print(10, 10,"STM32F4-Discovery board");
 
-  LCD_print(10, 30, "Running @ 168 MHz");
-  LCD_print(10, 50, "SSD1289 320x240 GLCD");
-  LCD_print(10, 70, "XPT2046 Touchscreen");
-  LCD_print(10, 130, "Demo routine...");
-  LCD_print(10, 210, "(C) 2013 Fabio Angeletti");
-   Clr_Backlight;
-   delay(500);
-   Set_Backlight;
-   delay(3000);
-/*
-  for(;;)
-  {
+  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
 
-    LCD_Clear(Black);
-  }
+    /* We should never get here as control is now taken by the scheduler */
 
-*/
-  Tpad_Calibrate();
-  LCD_Clear(Black);
-
- /* Infinite loop */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
-    uint16_t x_a, x_b, y_a, y_b, color;
+  /* USER CODE END WHILE */
 
-    delay(250);
-    while(Tpad_Pressed());
-    LCD_Clear(Black);
-    delay(250);
-	    // CIRCLEs
-		//
-    for(;;)
-    {
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
+  /* USER CODE BEGIN 3 */
 
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
-
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
-
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      color=HAL_RNG_GetRandomNumber(&hrng);
-
-      LCD_FillCircle(x_a, y_a, x_b, color);
-      delay(10);
-      if(!Tpad_Pressed())
-        break;
-    }
-
-    LCD_Clear(Black);
-    delay(250);
-	    // RECTs
-    for(;;)
-    {
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
-
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
-
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      y_b=HAL_RNG_GetRandomNumber(&hrng)%128;
-
-      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-      color=HAL_RNG_GetRandomNumber(&hrng);
-
-      LCD_FillRect(x_a, y_a, x_b,y_b, color);
-      delay(10);
-      if(!Tpad_Pressed())
-        break;
-    }
   }
-    LCD_Clear(Black);
-    delay(250);  /* USER CODE END 3 */
+  /* USER CODE END 3 */
+
+//
+//	LCD_print(10, 10,"STM32F4-Discovery board");
+//
+//  LCD_print(10, 30, "Running @ 168 MHz");
+//  LCD_print(10, 50, "SSD1289 320x240 GLCD");
+//  LCD_print(10, 70, "XPT2046 Touchscreen");
+//  LCD_print(10, 130, "Demo routine...");
+//  LCD_print(10, 210, "(C) 2013 Fabio Angeletti");
+//   Clr_Backlight;
+//   delay(500);
+//   Set_Backlight;
+//   delay(3000);
+///*
+//  for(;;)
+//  {
+//
+//    LCD_Clear(Black);
+//  }
+//
+//*/
+//  Tpad_Calibrate();
+//  LCD_Clear(Black);
+//
+// /* Infinite loop */
+//  while (1)
+//  {
+//    uint16_t x_a, x_b, y_a, y_b, color;
+//
+//    delay(250);
+//    while(Tpad_Pressed());
+//    LCD_Clear(Black);
+//    delay(250);
+//	    // CIRCLEs
+//		//
+//    for(;;)
+//    {
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
+//
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
+//
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
+//
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      color=HAL_RNG_GetRandomNumber(&hrng);
+//
+//      LCD_FillCircle(x_a, y_a, x_b, color);
+//      delay(10);
+//      if(!Tpad_Pressed())
+//        break;
+//    }
+//
+//    LCD_Clear(Black);
+//    delay(250);
+//	    // RECTs
+//    for(;;)
+//    {
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
+//
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
+//
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      y_b=HAL_RNG_GetRandomNumber(&hrng)%128;
+//
+//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
+//      color=HAL_RNG_GetRandomNumber(&hrng);
+//
+//      LCD_FillRect(x_a, y_a, x_b,y_b, color);
+//      delay(10);
+//      if(!Tpad_Pressed())
+//        break;
+//    }
+//  }
+//    LCD_Clear(Black);
+//    delay(250);  /* USER CODE END 3 */
 
 }
 
@@ -202,7 +222,6 @@ int main(void)
 */
 void SystemClock_Config(void)
 {
-
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
@@ -246,18 +265,15 @@ void SystemClock_Config(void)
   HAL_RCC_EnableCSS();
 
     /**Configure the Systick interrupt time
-	 * HAL_RCC_GetHCLKFreq() = 168 MHz
-	*/
-	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/10000);
-//	HAL_SYSTICK_Config(SystemCoreClock/10000);
-
+    */
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
     /**Configure the Systick
     */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 }
 
 /* USER CODE BEGIN 4 */

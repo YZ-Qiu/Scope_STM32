@@ -931,23 +931,22 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, uint8_t *pTxD
   /* Transmit and Receive data in 8 Bit mode */
   else
   {
-
-	__IO uint8_t* dr = (__IO uint8_t*)&hspi->Instance->DR;
+    if((hspi->Init.Mode == SPI_MODE_SLAVE) || (hspi->TxXferCount == 0x01U))
+    {
+      *((__IO uint8_t*)&hspi->Instance->DR) = (*pTxData);
+      pTxData += sizeof(uint8_t);
+      hspi->TxXferCount--;
+    }
     while((hspi->TxXferCount > 0U) || (hspi->RxXferCount > 0U))
     {
-          //Wait TX
-          WAIT_SPI_FLAG(SPI_FLAG_TXE);
- 
-          //Write TX
-          *dr = (*pTxData++);
-          hspi->TxXferCount--;
- 
-          //Wait RX
-          WAIT_SPI_FLAG(SPI_FLAG_RXNE);
- 
-          //Read RX
-          *pRxData++ = *dr;
-          hspi->RxXferCount--;
+      /* check TXE flag */
+      if(txallowed && (hspi->TxXferCount > 0U) && (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_TXE)))
+      {
+        *(__IO uint8_t *)&hspi->Instance->DR = (*pTxData++);
+        hspi->TxXferCount--;
+        /* Next Data is a reception (Rx). Tx not allowed */ 
+        txallowed = 0U;
+
 #if (USE_SPI_CRC != 0U)
         /* Enable CRC Transmission */
         if((hspi->TxXferCount == 0U) && (hspi->Init.CRCCalculation == SPI_CRCCALCULATION_ENABLE))
@@ -955,9 +954,21 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, uint8_t *pTxD
           SET_BIT(hspi->Instance->CR1, SPI_CR1_CRCNEXT);
         }
 #endif /* USE_SPI_CRC */
-      
+      }
 
-
+      /* Wait until RXNE flag is reset */
+      if((hspi->RxXferCount > 0U) && (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_RXNE)))
+      {
+        (*(uint8_t *)pRxData++) = hspi->Instance->DR;
+        hspi->RxXferCount--;
+        /* Next Data is a Transmission (Tx). Tx is allowed */ 
+        txallowed = 1U;
+      }
+      if((Timeout != HAL_MAX_DELAY) && ((HAL_GetTick()-tickstart) >=  Timeout))
+      {
+        errorcode = HAL_TIMEOUT;
+        goto error;
+      }
     }
   }
 

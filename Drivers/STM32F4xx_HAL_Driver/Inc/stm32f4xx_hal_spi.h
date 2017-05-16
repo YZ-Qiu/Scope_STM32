@@ -1,12 +1,3 @@
-
-//define by fuji
-#define WAIT_SPI_FLAG(__flag) \
-      while(__HAL_SPI_GET_FLAG(hspi, __flag) == 0){\
-          if((Timeout != HAL_MAX_DELAY) && ((HAL_GetTick()-tickstart) >=  Timeout)) {\
-              errorcode = HAL_TIMEOUT; goto error; \
-                                }\
-      }
-
 /**
   ******************************************************************************
   * @file    stm32f4xx_hal_spi.h
@@ -43,8 +34,6 @@
   *
   ******************************************************************************
   */
-
-
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F4xx_HAL_SPI_H

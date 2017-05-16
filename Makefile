@@ -52,10 +52,10 @@ BIN = $(CP) -O binary -S
 # macros for gcc
 C_DEFS = -D__weak="__attribute__((weak))" -D__packed="__attribute__((__packed__))" -DUSE_HAL_DRIVER -DSTM32F407xx
 # includes for gcc
-C_INCLUDES += $(addprefix -I,$(INC_DIR))
+INCLUDES += $(addprefix -I,$(INC_DIR))
 
 # compile gcc flags
-CFLAGS = -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard $(C_DEFS) $(INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
 endif
@@ -78,20 +78,26 @@ LDFLAGS = -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -specs=nano
 LDFLAGS+= -T$(TOOL_DIR)/STM32F407VGTx_FLASH.ld $(LIBS)
 LDFLAGS +=-Wl,-Map=$(MAP_FILE),--cref -Wl,--gc-sections
 
+
+MAKDIR = mk
+MAK = $(wildcard $(MAKDIR)/*.mk)
+
 # default action: build all
 all: $(OUTDIR)/$(PROJECT).elf $(OUTDIR)/$(PROJECT).hex $(BIN_IMAGE)
 
-
+include $(MAK)
 #######################################
 # build the application
 #######################################
 # list of ObjectS
+
+
 OBJS = $(addprefix $(OUTDIR)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
 # list of ASM program OBJS
 OBJS += $(addprefix $(OUTDIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
+OBJS += $(RTOSOBJS)
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
-
 $(OUTDIR)/%.o: %.c Makefile | $(OUTDIR)
 	@echo "   MAIN  |   CC    "$@
 	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(OUTDIR)/$(notdir $(<:.c=.lst)) $< -o $@
@@ -100,7 +106,7 @@ $(OUTDIR)/%.o: %.s Makefile | $(OUTDIR)
 	@echo "   MAIN  |   AS    "$@
 	@$(AS) -c $(CFLAGS) $< -o $@
 
-$(OUTDIR)/$(PROJECT).elf: $(OBJS) Makefile
+$(OUTDIR)/$(PROJECT).elf: $(OBJS)   Makefile
 	@echo "   ALL   |   LD    "$@
 	@$(CC) $(OBJS) $(LDFLAGS) -o $@
 	@$(SZ) $@
