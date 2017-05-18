@@ -34,12 +34,14 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
-extern DMA_HandleTypeDef hdma_adc1;
+#include "cmsis_os.h"
+
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef hdma_adc1;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */
@@ -123,7 +125,6 @@ void UsageFault_Handler(void)
   /* USER CODE END UsageFault_IRQn 1 */
 }
 
-
 /**
 * @brief This function handles Debug monitor.
 */
@@ -137,17 +138,17 @@ void DebugMon_Handler(void)
   /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
-
 /**
 * @brief This function handles System tick timer.
 */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-  TimeTick_Decrement();
- /* USER CODE END SysTick_IRQn 0 */
+
+  /* USER CODE END SysTick_IRQn 0 */
+    TimeTick_Decrement();
   HAL_IncTick();
-  HAL_SYSTICK_IRQHandler();
+  osSystickHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -159,6 +160,20 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+/**
+* @brief This function handles DMA2 stream0 global interrupt.
+*/
+void DMA2_Stream0_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc1);
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 

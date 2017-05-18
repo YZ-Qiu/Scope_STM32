@@ -4,29 +4,39 @@
   * Description        : Main program body
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * Copyright (c) 2017 STMicroelectronics International N.V.
+  * All rights reserved.
   *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
+  * Redistribution and use in source and binary forms, with or without
+  * modification, are permitted, provided that the following conditions are met:
   *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  * 1. Redistribution of source code must retain the above copyright notice,
+  *    this list of conditions and the following disclaimer.
+  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  *    this list of conditions and the following disclaimer in the documentation
+  *    and/or other materials provided with the distribution.
+  * 3. Neither the name of STMicroelectronics nor the names of other
+  *    contributors to this software may be used to endorse or promote products
+  *    derived from this software without specific written permission.
+  * 4. This software, including modifications and/or derivative works of this
+  *    software, must execute solely and exclusively on microcontroller or
+  *    microprocessor devices manufactured by or for STMicroelectronics.
+  * 5. Redistribution and use of this software other than as permitted under
+  *    this license is void and will automatically terminate your rights under
+  *    this license.
+  *
+  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT
+  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+  * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
+  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT
+  * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
   */
@@ -39,25 +49,14 @@
 #include "rng.h"
 #include "spi.h"
 #include "gpio.h"
-
-
-#ifdef __GNUC__
-  /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
-     set to 'Yes') calls __io_putchar() */
-  #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif /* __GNUC__ */
-
-
+#include "LCD.h"
+#include "Tpad.h"
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc2;
-DMA_HandleTypeDef hdma_adc2;
-osThreadId UI_TaskHandle;
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -67,8 +66,6 @@ osThreadId UI_TaskHandle;
 void SystemClock_Config(void);
 void Error_Handler(void);
 void MX_FREERTOS_Init(void);
-void Delayms(uint32_t millis);
-
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -79,6 +76,26 @@ void Delayms(uint32_t millis);
 
 /* USER CODE END 0 */
 
+osThreadId LED1_Handle;
+osThreadId LED2_Handle;
+
+void LED1_blink_Task(void const * argument)
+{
+  for(;;)
+  {
+  	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
+    osDelay(200);
+  }
+}
+
+void LED2_blink_Task(void const * argument)
+{
+  for(;;)
+  {
+  	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
+    osDelay(300);
+  }
+}
 int main(void)
 {
 
@@ -91,7 +108,6 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-
   /* Configure the system clock */
   SystemClock_Config();
 
@@ -102,26 +118,34 @@ int main(void)
   MX_SPI3_Init();
   MX_ADC1_Init();
 
-  /* USER CODE BEGIN 2 */
 
-  LCD_Initializtion();
-  Tpad_Init();
-   /*
-	LCD_Clear(Red);
-	delay(5000);
-	LCD_Clear(Green);
-	delay(5000);
-	LCD_Clear(Blue);
-	delay(5000);
-	 */
-
-/* USER CODE END 2 */
+  //LCD_Initializtion();
+  //Tpad_Init();
 
 
   /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
+  osThreadDef(LED1, LED1_blink_Task,osPriorityHigh ,1, 1024);
+  LED1_Handle = osThreadCreate(osThread(LED1), NULL);
+  osThreadDef(LED2, LED2_blink_Task, osPriorityNormal, 1, 1024);
+  LED2_Handle = osThreadCreate(osThread(LED2), NULL);
 
-    /* We should never get here as control is now taken by the scheduler */
+  osKernelStart();
+
+/*
+	LCD_print(10, 10,"STM32F4-Discovery board");
+
+  LCD_print(10, 30, "Running @ 168 MHz");
+  LCD_print(10, 50, "SSD1289 320x240 GLCD");
+  LCD_print(10, 70, "XPT2046 Touchscreen");
+  LCD_print(10, 130, "Demo routine...");
+  LCD_print(10, 210, "(C) 2013 Fabio Angeletti");
+   Clr_Backlight;
+   delay(5000);
+   Set_Backlight;
+   delay(5000);
+*/
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -134,94 +158,13 @@ int main(void)
   }
   /* USER CODE END 3 */
 
-//
-//	LCD_print(10, 10,"STM32F4-Discovery board");
-//
-//  LCD_print(10, 30, "Running @ 168 MHz");
-//  LCD_print(10, 50, "SSD1289 320x240 GLCD");
-//  LCD_print(10, 70, "XPT2046 Touchscreen");
-//  LCD_print(10, 130, "Demo routine...");
-//  LCD_print(10, 210, "(C) 2013 Fabio Angeletti");
-//   Clr_Backlight;
-//   delay(500);
-//   Set_Backlight;
-//   delay(3000);
-///*
-//  for(;;)
-//  {
-//
-//    LCD_Clear(Black);
-//  }
-//
-//*/
-//  Tpad_Calibrate();
-//  LCD_Clear(Black);
-//
-// /* Infinite loop */
-//  while (1)
-//  {
-//    uint16_t x_a, x_b, y_a, y_b, color;
-//
-//    delay(250);
-//    while(Tpad_Pressed());
-//    LCD_Clear(Black);
-//    delay(250);
-//	    // CIRCLEs
-//		//
-//    for(;;)
-//    {
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
-//
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
-//
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
-//
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      color=HAL_RNG_GetRandomNumber(&hrng);
-//
-//      LCD_FillCircle(x_a, y_a, x_b, color);
-//      delay(10);
-//      if(!Tpad_Pressed())
-//        break;
-//    }
-//
-//    LCD_Clear(Black);
-//    delay(250);
-//	    // RECTs
-//    for(;;)
-//    {
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      x_a=HAL_RNG_GetRandomNumber(&hrng)%320;
-//
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      x_b=HAL_RNG_GetRandomNumber(&hrng)%64;
-//
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      y_a=HAL_RNG_GetRandomNumber(&hrng)%240;
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      y_b=HAL_RNG_GetRandomNumber(&hrng)%128;
-//
-//      while(__HAL_RNG_GET_FLAG(&hrng, RNG_FLAG_DRDY)== RESET);
-//      color=HAL_RNG_GetRandomNumber(&hrng);
-//
-//      LCD_FillRect(x_a, y_a, x_b,y_b, color);
-//      delay(10);
-//      if(!Tpad_Pressed())
-//        break;
-//    }
-//  }
-//    LCD_Clear(Black);
-//    delay(250);  /* USER CODE END 3 */
-
 }
 
 /** System Clock Configuration
 */
 void SystemClock_Config(void)
 {
+
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
