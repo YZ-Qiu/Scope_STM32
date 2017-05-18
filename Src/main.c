@@ -84,16 +84,36 @@ void LED1_blink_Task(void const * argument)
   for(;;)
   {
   	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
-    osDelay(200);
+    osDelay(500);
   }
 }
 
 void LED2_blink_Task(void const * argument)
 {
+/*
+  LCD_Initializtion();
+  Tpad_Init();
   for(;;)
   {
+    LCD_print(10, 10,"STM32F4-Discovery board");
+
+    LCD_print(10, 30, "Running @ 168 MHz");
+    LCD_print(10, 50, "SSD1289 320x240 GLCD");
+    LCD_print(10, 70, "XPT2046 Touchscreen");
+    LCD_print(10, 130, "Demo routine...");
+    LCD_print(10, 210, "(C) 2013 Fabio Angeletti");
+     Clr_Backlight;
+     osDelay(1000);
+     Set_Backlight;
+     osDelay(1000);
+     LCD_Clear(Blue);
+     osDelay(1000);
+   }
+   */
+     for(;;)
+  {
   	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
-    osDelay(300);
+    osDelay(1000);
   }
 }
 int main(void)
@@ -119,14 +139,13 @@ int main(void)
   MX_ADC1_Init();
 
 
-  //LCD_Initializtion();
-  //Tpad_Init();
+
 
 
   /* Call init function for freertos objects (in freertos.c) */
-  osThreadDef(LED1, LED1_blink_Task,osPriorityHigh ,1, 1024);
+  osThreadDef(LED1, LED1_blink_Task,osPriorityNormal ,1, 1024);
   LED1_Handle = osThreadCreate(osThread(LED1), NULL);
-  osThreadDef(LED2, LED2_blink_Task, osPriorityNormal, 1, 1024);
+  osThreadDef(LED2, LED2_blink_Task, osPriorityRealtime, 1, 1024);
   LED2_Handle = osThreadCreate(osThread(LED2), NULL);
 
   osKernelStart();
@@ -170,7 +189,7 @@ void SystemClock_Config(void)
 
     /**Configure the main internal regulator output voltage
     */
-  __HAL_RCC_PWR_CLK_ENABLE();
+  __PWR_CLK_ENABLE();
 
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
@@ -184,10 +203,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 8;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
 
     /**Initializes the CPU, AHB and APB busses clocks
     */
@@ -198,25 +214,9 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
 
-    /**Enables the Clock Security System
-    */
-  HAL_RCC_EnableCSS();
 
-    /**Configure the Systick interrupt time
-    */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
-
-    /**Configure the Systick
-    */
-  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-
-  /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 }
 
 /* USER CODE BEGIN 4 */
