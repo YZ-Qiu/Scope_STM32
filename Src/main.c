@@ -78,6 +78,8 @@ void MX_FREERTOS_Init(void);
 
 osThreadId LED1_Handle;
 osThreadId LED2_Handle;
+__IO uint32_t ADC_val=0;
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
 
 void LED1_blink_Task(void const * argument)
 {
@@ -90,31 +92,31 @@ void LED1_blink_Task(void const * argument)
 
 void LED2_blink_Task(void const * argument)
 {
-/*
+
   LCD_Initializtion();
   Tpad_Init();
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
+  HAL_ADC_Start(&hadc1);
+
   for(;;)
   {
-    LCD_print(10, 10,"STM32F4-Discovery board");
+    char str[32];
+    sprintf(str,"%d",ADC_val);
+    LCD_print(10, 50, str);
+    osDelay(1000);
+    LCD_Clear(Black);
 
-    LCD_print(10, 30, "Running @ 168 MHz");
-    LCD_print(10, 50, "SSD1289 320x240 GLCD");
-    LCD_print(10, 70, "XPT2046 Touchscreen");
-    LCD_print(10, 130, "Demo routine...");
-    LCD_print(10, 210, "(C) 2013 Fabio Angeletti");
-     Clr_Backlight;
-     osDelay(1000);
-     Set_Backlight;
-     osDelay(1000);
-     LCD_Clear(Blue);
-     osDelay(1000);
    }
-   */
+
+
+   /*
      for(;;)
   {
   	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
     osDelay(1000);
   }
+  */
+
 }
 int main(void)
 {
@@ -178,6 +180,11 @@ int main(void)
   /* USER CODE END 3 */
 
 }
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  ADC_val = HAL_ADC_GetValue(&hadc1);
+}
+
 
 /** System Clock Configuration
 */
