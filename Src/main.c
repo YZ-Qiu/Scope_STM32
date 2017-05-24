@@ -41,6 +41,7 @@
   ******************************************************************************
   */
 /* Includes ------------------------------------------------------------------*/
+#include <math.h>
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
@@ -90,10 +91,11 @@ void LED1_blink_Task(void const * argument)
   }
 }
 
-void LED2_blink_Task(void const * argument)
+void ADC_Task(void const * argument)
 {
 
   LCD_Initializtion();
+/*
   Tpad_Init();
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
   HAL_ADC_Start(&hadc1);
@@ -103,19 +105,34 @@ void LED2_blink_Task(void const * argument)
     char str[32];
     sprintf(str,"%d",ADC_val);
     LCD_print(10, 50, str);
-    osDelay(1000);
+    osDelay(300);
     LCD_Clear(Black);
 
    }
+*/
 
 
-   /*
+
+   float val=0;
+    char str[16];
      for(;;)
   {
-  	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
-    osDelay(1000);
+    val+=0.001;
+   // sprintf(str, "%.3f", val);
+  //	snprintf(str, sizeof(str), "%.3f", val);
+
+  float2str(val,str,3);
+
+   // sprintf(str, "%f", val);
+   LCD_print(10, 30, str);
+   // LCD_printfl(10, 30, val,1);
+    osDelay(300);
+    LCD_printColor(10, 30, str, Black);
+
+
+   // LCD_Clear(Black);
   }
-  */
+
 
 }
 int main(void)
@@ -147,7 +164,7 @@ int main(void)
   /* Call init function for freertos objects (in freertos.c) */
   osThreadDef(LED1, LED1_blink_Task,osPriorityNormal ,1, 1024);
   LED1_Handle = osThreadCreate(osThread(LED1), NULL);
-  osThreadDef(LED2, LED2_blink_Task, osPriorityRealtime, 1, 1024);
+  osThreadDef(LED2, ADC_Task, osPriorityRealtime, 1, 1024);
   LED2_Handle = osThreadCreate(osThread(LED2), NULL);
 
   osKernelStart();

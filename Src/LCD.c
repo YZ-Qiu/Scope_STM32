@@ -17,7 +17,7 @@
 
 #include "AsciiLib.h"
 #include "delay.h"
-
+#include <math.h>
 /* Private define ------------------------------------------------------------*/
 
 //#define LCD_REG              (*((volatile unsigned short *) 0x6F000000)) /* RS = 0 */
@@ -859,11 +859,44 @@ Available font type:
 */
 void LCD_print(uint16_t Xpos, uint16_t Ypos, char *str)
 {
-	LCD_printColorFont(Xpos, Ypos, str, Default_Color , MS_GOTHIC_8x16);
+	LCD_printColorFont(Xpos, Ypos, str, Default_Color , Default_Font);
 }
+void 	float2str( float f,char *str,int digit)
+{
+    int i = f;
+    int remain = (float)(f-i)*pow(10,digit);
+    char remain_str[32];
+    sprintf(str,"%d",i);
+    char tmp[8]={'%', '0'},tmp2[8];
+
+    sprintf(tmp2, "%d", digit);
+    strcat(tmp,tmp2);
+    strcat(tmp,"d");
+
+    sprintf(remain_str,tmp,remain);
+    strcat(str, ".");
+    strcat(str, remain_str);
+
+}
+/*
+void LCD_printfl(uint16_t Xpos, uint16_t Ypos, float f,int digit)
+{
+    int i = f;
+    int remain = (float)(f-i)*pow(10,digit);
+    char str[32];
+    char point[1] = ".";
+    char remain_str[32];
+    sprintf(str,"%d",i);
+    sprintf(remain_str,"%d",remain);
+    strcat(str, point);
+    strcat(str, remain_str);
+	LCD_printColorFont(Xpos, Ypos, str, Default_Color , Default_Font);
+}
+
+*/
 void LCD_printColor(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color)
 {
-	LCD_printColorFont(Xpos, Ypos, str, Default_Color , MS_GOTHIC_8x16);
+	LCD_printColorFont(Xpos, Ypos, str, Color , Default_Font);
 
 }
 void LCD_printColorFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx)

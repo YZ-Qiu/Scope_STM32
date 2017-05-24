@@ -106,7 +106,7 @@
 
 /* LCD color */
 #define Default_Color  Green
-#define Default_Font  Green
+#define Default_Font  MS_GOTHIC_8x16
 
 #define White          0xFFFF
 #define Black          0x0000
@@ -149,6 +149,10 @@ void putCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColo
 
 
 void LCD_print(uint16_t Xpos, uint16_t Ypos, char *str);
+//print float
+void 	float2str( float f,char *str,int digit);
+//void LCD_printfl(uint16_t Xpos, uint16_t Ypos,float f,int digit);
+
 void LCD_printColor(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color);
 void LCD_printColorFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx);
 
