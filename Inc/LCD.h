@@ -15,6 +15,21 @@
 #ifndef __GLCD_H
 #define __GLCD_H
 
+
+#define max(a,b) a>b?a:b;
+#define min(a,b) a<b?a:b;
+#define int_swap(a, b) \
+    { \
+        (a) ^= (b); \
+        (b) ^= (a); \
+        (a) ^= (b); \
+    }
+typedef enum  bool
+{
+   false = 0,
+   true = 1
+}bool;
+
 /* Includes ------------------------------------------------------------------*/
 #include <math.h>
 #include "AsciiLib.h"
@@ -128,6 +143,7 @@ void LCD_Clear(uint16_t Color);
 uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos);
 void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point);
 void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t color );
+
 void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
 	// draws a filled circle with center x0,y0 radius r and selected color
 void LCD_FillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
@@ -151,7 +167,6 @@ void putCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColo
 void LCD_print(uint16_t Xpos, uint16_t Ypos, char *str);
 //print float
 void 	float2str( float f,char *str,int digit);
-//void LCD_printfl(uint16_t Xpos, uint16_t Ypos,float f,int digit);
 
 void LCD_printColor(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color);
 void LCD_printColorFont(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color, uint16_t FONTx);

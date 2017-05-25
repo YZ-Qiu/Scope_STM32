@@ -17,6 +17,7 @@
 
 #include "AsciiLib.h"
 #include "delay.h"
+#include <stdlib.h>
 #include <math.h>
 /* Private define ------------------------------------------------------------*/
 
@@ -501,87 +502,59 @@ void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point)
 * Return         : None
 * Attention		 : None
 *******************************************************************************/
+
 void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t color )
 {
-  short dx,dy;
-  short temp;
-
-  if( x0 > x1 )
-  {
-    temp = x1;
-    x1 = x0;
-    x0 = temp;
-  }
-  if( y0 > y1 )
-  {
-    temp = y1;
-    y1 = y0;
-    y0 = temp;
-  }
-
-  dx = x1-x0;
-  dy = y1-y0;
+  int16_t dx = x1-x0;
+  int16_t dy = y1-y0;
+  int16_t tmp,i;
 
   if( dx == 0 )
   {
-    do
-    {
-      LCD_SetPoint(x0, y0, color);
-      y0++;
-    }
-    while( y1 >= y0 );
+    tmp = min(y0,y1);
+    for(i = tmp;i<=tmp+dy;i++)
+      LCD_SetPoint(x0,i, color);
     return;
   }
   if( dy == 0 )
   {
-    do
-    {
-      LCD_SetPoint(x0, y0, color);
-      x0++;
-    }
-    while( x1 >= x0 );
-		return;
+    tmp = min(x0,x1);
+    for(i = tmp;i<=tmp+dx;i++)
+      LCD_SetPoint(i,y0, color);
+    return;
   }
-
 	/* Bresenham's line algorithm  */
-  if( dx > dy )
+  bool steep = (abs(dy) > abs(dx));
+
+  if(steep)
   {
-    temp = 2 * dy - dx;
-    while( x0 != x1 )
-    {
-	    LCD_SetPoint(x0,y0,color);
-	    x0++;
-	    if( temp > 0 )
-	    {
-	      y0++;
-	      temp += 2 * dy - 2 * dx;
-	 	  }
-      else
-      {
-			  temp += 2 * dy;
-			}
-    }
-    LCD_SetPoint(x0,y0,color);
+    int_swap(x0, y0);
+    int_swap(x1, y1);
   }
-  else
+  if (x0 > x1 )
   {
-    temp = 2 * dx - dy;
-    while( y0 != y1 )
-    {
-	 	  LCD_SetPoint(x0,y0,color);
-      y0++;
-      if( temp > 0 )
-      {
-        x0++;
-        temp+=2*dy-2*dx;
-      }
-      else
-			{
-        temp += 2 * dy;
-			}
-    }
-    LCD_SetPoint(x0,y0,color);
-	}
+    int_swap(x0, x1);
+    int_swap(y0, y1);
+  }
+     int16_t deltay = abs(dy);
+     int16_t error = dx/2;
+     int16_t ystep = (y0 < y1)?1:-1;
+     int16_t y = y0;
+
+     for (i=x0;i<=x1;i++)
+     {
+        if(steep)
+          LCD_SetPoint(y, i, color);
+        else
+          LCD_SetPoint(i, y, color);
+        error-=deltay;
+        if(error<0)
+        {
+          y+=ystep;
+          error+=dx;
+        }
+     }
+
 }
 void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
 {
@@ -878,22 +851,7 @@ void 	float2str( float f,char *str,int digit)
     strcat(str, remain_str);
 
 }
-/*
-void LCD_printfl(uint16_t Xpos, uint16_t Ypos, float f,int digit)
-{
-    int i = f;
-    int remain = (float)(f-i)*pow(10,digit);
-    char str[32];
-    char point[1] = ".";
-    char remain_str[32];
-    sprintf(str,"%d",i);
-    sprintf(remain_str,"%d",remain);
-    strcat(str, point);
-    strcat(str, remain_str);
-	LCD_printColorFont(Xpos, Ypos, str, Default_Color , Default_Font);
-}
 
-*/
 void LCD_printColor(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color)
 {
 	LCD_printColorFont(Xpos, Ypos, str, Color , Default_Font);

@@ -79,7 +79,7 @@ void MX_FREERTOS_Init(void);
 
 osThreadId LED1_Handle;
 osThreadId LED2_Handle;
-__IO uint32_t ADC_val=0;
+__IO uint16_t ADC_val=0;
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
 
 void LED1_blink_Task(void const * argument)
@@ -90,29 +90,67 @@ void LED1_blink_Task(void const * argument)
     osDelay(500);
   }
 }
-
+#define PI 3.14159265
 void ADC_Task(void const * argument)
 {
 
   LCD_Initializtion();
-/*
   Tpad_Init();
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
   HAL_ADC_Start(&hadc1);
+
+  uint16_t result[320],i;
+  double param = 30.0;
+    for(i =40;i<240;i+=40)
+  {
+    LCD_DrawLine( 0, i,320, i ,Red);
+  }
+      for(i =40;i<320;i+=40)
+  {
+    LCD_DrawLine( i, 0,i, 240,Red);
+  }
+  for(i =0;i<640;i+=2)
+  {
+      result[i/2] = 120*(1.0+sin(i*(9.0/8.0)*PI/180));
+  }
+
+    for(i =0;i<160;i+=1)
+  {
+    LCD_DrawLine( i,result[i], i+1,result[i+1] ,Green);
+  }
+  int j,s,b;
+  for(i =160;i<319;i+=1)
+  {
+    s = (result[i]<=result[i+1])?result[i]:result[i+1];
+    b = (result[i]>result[i+1])?result[i]:result[i+1];
+
+    for(j = s;j<b;j++)
+      LCD_SetPoint(i,j,Green);
+  }
+  /*
+ LCD_DrawLine( 1,1,200,200,Green);
+ LCD_DrawLine( 1,239,319,1,Blue);
+       for(i =0;i<240;i+=1)
+  {
+      LCD_SetPoint(i,i,Blue);
+  }
+*/
+    for(;;){}
 
   for(;;)
   {
     char str[32];
     sprintf(str,"%d",ADC_val);
+
     LCD_print(10, 50, str);
     osDelay(300);
-    LCD_Clear(Black);
+    LCD_printColor(10, 30, str, Black);
 
    }
-*/
 
 
 
+/*
    float val=0;
     char str[16];
      for(;;)
@@ -123,16 +161,12 @@ void ADC_Task(void const * argument)
 
   float2str(val,str,3);
 
-   // sprintf(str, "%f", val);
    LCD_print(10, 30, str);
-   // LCD_printfl(10, 30, val,1);
     osDelay(300);
     LCD_printColor(10, 30, str, Black);
-
-
    // LCD_Clear(Black);
   }
-
+*/
 
 }
 int main(void)
