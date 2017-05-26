@@ -93,7 +93,6 @@ void LED1_blink_Task(void const * argument)
 #define PI 3.14159265
 void ADC_Task(void const * argument)
 {
-
   LCD_Initializtion();
   Tpad_Init();
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
@@ -103,11 +102,11 @@ void ADC_Task(void const * argument)
   double param = 30.0;
     for(i =40;i<240;i+=40)
   {
-    LCD_DrawLine( 0, i,320, i ,Red,Verti);
+    LCD_DrawLine( 0, i,320, i ,Red);
   }
       for(i =40;i<320;i+=40)
   {
-    LCD_DrawLine( i, 0,i, 240,Red,Horiz);
+    LCD_DrawLine( i, 0,i, 240,Red);
   }
   for(i =0;i<640;i+=2)
   {
@@ -116,7 +115,7 @@ void ADC_Task(void const * argument)
 
     for(i =0;i<160;i+=1)
   {
-    LCD_DrawLine( i,result[i], i+1,result[i+1] ,Green,Slash);
+    LCD_DrawLine( i,result[i], i+1,result[i+1] ,Green);
   }
   int j,s,b;
   for(i =160;i<319;i+=1)
@@ -198,6 +197,7 @@ int main(void)
   /* Call init function for freertos objects (in freertos.c) */
   osThreadDef(LED1, LED1_blink_Task,osPriorityNormal ,1, 1024);
   LED1_Handle = osThreadCreate(osThread(LED1), NULL);
+
   osThreadDef(LED2, ADC_Task, osPriorityRealtime, 1, 1024);
   LED2_Handle = osThreadCreate(osThread(LED2), NULL);
 

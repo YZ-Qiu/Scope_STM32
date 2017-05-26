@@ -64,8 +64,9 @@ CFLAGS += -w
 endif
 
 # Generate dependency information
-CFLAGS += -std=c99 -MD -MP -MF .dep/$(@F).d
-
+CFLAGS += -std=c99  -MD -MP -MF .dep/$(@F).d
+#Floating point 
+CFLAGS +=-DARM_MATH_CM4  -D__FPU_PRESENT  -ffast-math
 #######################################
 # LDFLAGS
 #######################################
