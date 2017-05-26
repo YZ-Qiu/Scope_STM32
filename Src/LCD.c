@@ -503,57 +503,65 @@ void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point)
 * Attention		 : None
 *******************************************************************************/
 
-void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t color )
+void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 ,uint16_t color,line_type ltype )
 {
-  int16_t dx = x1-x0;
-  int16_t dy = y1-y0;
-  int16_t tmp,i;
+  int16_t i;
+  int16_t dx,dy;
+  if(x0==x1)
+    ltype = Horiz;
+  else if(y0==y1)
+    ltype = Verti;
 
-  if( dx == 0 )
+  switch(ltype)
   {
-    tmp = min(y0,y1);
-    for(i = tmp;i<=tmp+dy;i++)
-      LCD_SetPoint(x0,i, color);
-    return;
-  }
-  if( dy == 0 )
-  {
-    tmp = min(x0,x1);
-    for(i = tmp;i<=tmp+dx;i++)
-      LCD_SetPoint(i,y0, color);
-    return;
-  }
-	/* Bresenham's line algorithm  */
-  bool steep = (abs(dy) > abs(dx));
+    case Horiz:
+      if(y0>y1)int_swap(y0,y1);
+      for(i = y0;i<=y1;i++)
+        LCD_SetPoint(x0,i, color);
+    break;
+    case Verti:
+      if(x0>x1) int_swap(x0,x1);
+      for(i = x0;i<=x1;i++)
+        LCD_SetPoint(i,y0, color);
+    break;
+    case Slash:
+      /* Bresenham's line algorithm  */
+      dx = x1-x0;
+      dy = y1-y0;
+      bool steep = (abs(dy) > abs(dx));
+      if(steep)
+      {
+        int_swap(x0, y0);
+        int_swap(x1, y1);
+      }
+      if (x0 > x1 )
+      {
+        int_swap(x0, x1);
+        int_swap(y0, y1);
+      }
+      dx = x1-x0;
+      dy = y1-y0;
+      int16_t deltay = abs(dy);
 
-  if(steep)
-  {
-    int_swap(x0, y0);
-    int_swap(x1, y1);
-  }
-  if (x0 > x1 )
-  {
-    int_swap(x0, x1);
-    int_swap(y0, y1);
-  }
-     int16_t deltay = abs(dy);
-     int16_t error = dx/2;
-     int16_t ystep = (y0 < y1)?1:-1;
-     int16_t y = y0;
+       float slope  = dy/dx;
 
-     for (i=x0;i<=x1;i++)
-     {
-        if(steep)
-          LCD_SetPoint(y, i, color);
-        else
-          LCD_SetPoint(i, y, color);
-        error-=deltay;
-        if(error<0)
-        {
-          y+=ystep;
-          error+=dx;
-        }
-     }
+       int16_t ystep = (y0 < y1)?1:-1;
+       float y = y0+0.5;
+
+       for (i=x0;i<=x1;i++)
+       {
+          if(steep)
+            LCD_SetPoint((uint16_t)y, i, color);
+          else
+            LCD_SetPoint(i,(uint16_t)y, color);
+            y+=slope;
+
+       }
+    break;
+
+  }
+
+
 
 }
 void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
@@ -638,10 +646,10 @@ void LCD_DrawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 	if ((y+h) > MAX_Y)
 		h = MAX_Y - y;
 
-	LCD_DrawLine(x, y, x, y+h, color);
-	LCD_DrawLine(x, y, x+w, y, color);
-	LCD_DrawLine(x+w, y+h, x, y+h, color);
-	LCD_DrawLine(x+w, y+h, x+w, y, color);
+	LCD_DrawLine(x, y, x, y+h, color,Verti);
+	LCD_DrawLine(x, y, x+w, y, color,Horiz);
+	LCD_DrawLine(x+w, y+h, x, y+h, color,Horiz);
+	LCD_DrawLine(x+w, y+h, x+w, y, color,Verti);
 }
 
 void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
@@ -684,28 +692,28 @@ void LCD_DrawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16
 	if (y2 > MAX_Y)
 		y2 = MAX_Y;
 
-	LCD_DrawLine(x0, y0, x1, y1, color);
-	LCD_DrawLine(x0, y0, x2, y2, color);
-	LCD_DrawLine(x2, y2, x1, y1, color);
+	LCD_DrawLine(x0, y0, x1, y1, color,Slash);
+	LCD_DrawLine(x0, y0, x2, y2, color,Slash);
+	LCD_DrawLine(x2, y2, x1, y1, color,Slash);
 }
 void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out_color)
 {
-  LCD_DrawLine(Xpos-15,Ypos,Xpos-2,Ypos,in_color);
-  LCD_DrawLine(Xpos+2,Ypos,Xpos+15,Ypos,in_color);
-  LCD_DrawLine(Xpos,Ypos-15,Xpos,Ypos-2,in_color);
-  LCD_DrawLine(Xpos,Ypos+2,Xpos,Ypos+15,in_color);
+  LCD_DrawLine(Xpos-15,Ypos,Xpos-2,Ypos,in_color,Slash);
+  LCD_DrawLine(Xpos+2,Ypos,Xpos+15,Ypos,in_color,Slash);
+  LCD_DrawLine(Xpos,Ypos-15,Xpos,Ypos-2,in_color,Slash);
+  LCD_DrawLine(Xpos,Ypos+2,Xpos,Ypos+15,in_color,Slash);
 
-  LCD_DrawLine(Xpos-15,Ypos+15,Xpos-7,Ypos+15,out_color);
-  LCD_DrawLine(Xpos-15,Ypos+7,Xpos-15,Ypos+15,out_color);
+  LCD_DrawLine(Xpos-15,Ypos+15,Xpos-7,Ypos+15,out_color,Slash);
+  LCD_DrawLine(Xpos-15,Ypos+7,Xpos-15,Ypos+15,out_color,Slash);
 
-  LCD_DrawLine(Xpos-15,Ypos-15,Xpos-7,Ypos-15,out_color);
-  LCD_DrawLine(Xpos-15,Ypos-7,Xpos-15,Ypos-15,out_color);
+  LCD_DrawLine(Xpos-15,Ypos-15,Xpos-7,Ypos-15,out_color,Slash);
+  LCD_DrawLine(Xpos-15,Ypos-7,Xpos-15,Ypos-15,out_color,Slash);
 
-  LCD_DrawLine(Xpos+7,Ypos+15,Xpos+15,Ypos+15,out_color);
-  LCD_DrawLine(Xpos+15,Ypos+7,Xpos+15,Ypos+15,out_color);
+  LCD_DrawLine(Xpos+7,Ypos+15,Xpos+15,Ypos+15,out_color,Slash);
+  LCD_DrawLine(Xpos+15,Ypos+7,Xpos+15,Ypos+15,out_color,Slash);
 
-  LCD_DrawLine(Xpos+7,Ypos-15,Xpos+15,Ypos-15,out_color);
-  LCD_DrawLine(Xpos+15,Ypos-15,Xpos+15,Ypos-7,out_color);
+  LCD_DrawLine(Xpos+7,Ypos-15,Xpos+15,Ypos-15,out_color,Slash);
+  LCD_DrawLine(Xpos+15,Ypos-15,Xpos+15,Ypos-7,out_color,Slash);
 }
 /******************************************************************************
 * Function Name  : PutChar

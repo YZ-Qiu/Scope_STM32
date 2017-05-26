@@ -103,11 +103,11 @@ void ADC_Task(void const * argument)
   double param = 30.0;
     for(i =40;i<240;i+=40)
   {
-    LCD_DrawLine( 0, i,320, i ,Red);
+    LCD_DrawLine( 0, i,320, i ,Red,Verti);
   }
       for(i =40;i<320;i+=40)
   {
-    LCD_DrawLine( i, 0,i, 240,Red);
+    LCD_DrawLine( i, 0,i, 240,Red,Horiz);
   }
   for(i =0;i<640;i+=2)
   {
@@ -116,7 +116,7 @@ void ADC_Task(void const * argument)
 
     for(i =0;i<160;i+=1)
   {
-    LCD_DrawLine( i,result[i], i+1,result[i+1] ,Green);
+    LCD_DrawLine( i,result[i], i+1,result[i+1] ,Green,Slash);
   }
   int j,s,b;
   for(i =160;i<319;i+=1)

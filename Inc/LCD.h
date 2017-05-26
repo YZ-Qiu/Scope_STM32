@@ -85,6 +85,8 @@ typedef enum  bool
 
 	/*  PC0.8(RST) PC.1(WR), PC.2(RD) , PC.6(CS), PC.7(RS)*/
 		/* PA.3(BL_PWM),*/
+typedef enum line_type{Horiz =1,Verti,Slash}line_type;
+
 
 #define ILI9325_CTRL_PORT			GPIOD
 #define ILI9325_DATA_PORT			GPIOE
@@ -142,7 +144,7 @@ void LCD_Clear(uint16_t Color);
 //void LCD_SetBacklight(uint8_t intensity);
 uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos);
 void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point);
-void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 , uint16_t color );
+void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 ,uint16_t color ,line_type ltype);
 
 void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
 	// draws a filled circle with center x0,y0 radius r and selected color
