@@ -80,7 +80,7 @@ void MX_FREERTOS_Init(void);
 osThreadId LED1_Handle;
 osThreadId LED2_Handle;
 __IO uint16_t ADC_val=0;
-static uint16_t ADC_buffer[320]={0};
+static uint16_t ADC_buffer[2][320];
 static uint16_t smp_cnt = 0;
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
 
@@ -98,14 +98,19 @@ void ADC_Task(void const * argument)
  // Tpad_Init();
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
   HAL_ADC_Start(&hadc1);
+  /*
   for(;;)
   {
-  	LCD_Clear(Red);
-	osDelay(1000);
 	LCD_Clear(Green);
-	osDelay(1000);
+	LCD_Clear(Red);
+
+
 	
   }
+  */
+
+  	LCD_Clear(Black);
+  
 /*
   uint16_t result[320],i;
   double param = 30.0;
@@ -145,47 +150,73 @@ void ADC_Task(void const * argument)
   }
 */
 
-  uint16_t buf_i =0;
+  uint16_t buf_i=0,i;
   //Assume 42MHz sample rate---> down scale to 420Hz
 	char str[32],buf_str[32];
-	LCD_print(10, 10, "test");
+	int use_buf=0;
+//	LCD_print(10, 10, "test");
 /*
 		LCD_DrawLine( 0,51,1,51,Green);
 		LCD_DrawLine( 1,51,2,54,Green);
 		LCD_DrawLine( 2,54,3,53,Green);
 		LCD_DrawLine( 3,53,4,51,Green);
-*/						
+*/		
+/*
+	for(i=0;i<320;i++)
+  {
+  	ADC_buffer[0][i]=100;
+	ADC_buffer[1][i]=100;
 
+  }
+*/
 	for(;;)
   {
+  
   /*
-			LCD_printColor(10, 50, str, Black);
-			sprintf(str,"%d",smp_cnt);
-			LCD_print(10, 50, str);
+			LCD_printColor(10, 110, str, Black);
+			sprintf(str,"%d",ADC_val);
+			LCD_print(10, 110, str);
 */
-  		osDelay(1);  //inevitable ,or lcd won't display,dont know why
-		if(smp_cnt>=100)
+		  sprintf(str,"%d",ADC_val);//some thing must written here or print wont work...
+
+//  		osDelay(1);  //inevitable ,or lcd won't display,dont know why
+		if(smp_cnt>=10)
 		{
 			if(buf_i==320)
-				buf_i=0;
-				
-			if(buf_i != 0)
 			{
-				LCD_DrawLine( buf_i,ADC_buffer[buf_i],buf_i+1,ADC_buffer[buf_i+1],Black);
-				ADC_buffer[buf_i] = (ADC_val)*(240.0/4096.0);
-				LCD_DrawLine( buf_i-1,ADC_buffer[buf_i-1],buf_i,ADC_buffer[buf_i],Green);
+				use_buf = !use_buf;
+				for(i=0;i<(320-1);i++)
+				{
+					LCD_DrawLine( i,ADC_buffer[use_buf][i],i,ADC_buffer[use_buf][i+1],Black);
+				}
+				use_buf = !use_buf;
 				
-				LCD_printColor(10, 110, str,Black);
-				sprintf(str,"%d",ADC_val);
-				LCD_print(10, 110, str);
+				for(i=0;i<(320-1);i++)
+				{
+					LCD_DrawLine( i,ADC_buffer[use_buf][i],i,ADC_buffer[use_buf][i+1],Green);
+				}
+				buf_i=0;
+				use_buf = !use_buf;
+				
+				
+			}
 
+				ADC_buffer[use_buf][buf_i] = (ADC_val)*240/4096;
+/*
+			if(buf_i!= 0)
+			{
+				LCD_DrawLine( buf_i,ADC_buffer[buf_i],buf_i,ADC_buffer[buf_i+1],Black);
+				ADC_buffer[buf_i] = (ADC_val)*240/4096;
+				LCD_DrawLine( buf_i-1,ADC_buffer[buf_i-1],buf_i-1,ADC_buffer[buf_i],Green);
+				
 			}
 			else
 			{
 				
-				LCD_DrawLine( 0,ADC_buffer[0],1,ADC_buffer[1],Black);
-				ADC_buffer[buf_i] = (ADC_val)*240/4096;
+				LCD_DrawLine( 0,ADC_buffer[0],0,ADC_buffer[1],Black);
+				ADC_buffer[0] = (ADC_val)*240/4096;
 			}
+*/
 			buf_i++;
 			smp_cnt = 0;
 		}

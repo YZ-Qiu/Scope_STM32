@@ -506,65 +506,57 @@ void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point)
 
 void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 ,uint16_t color )
 {
-  int16_t sx,sy,i;
-  q7_t dx,dy;
-  line_type ltype;
+  int16_t i;
   if(x0==x1)
-    ltype = Horiz;
-  else if(y0==y1)
-    ltype = Verti;
-  else
-    ltype = Slash;
-  switch(ltype)
   {
-    case Horiz:
-      if(y0>y1)int_swap(y0,y1);
+  	  if(y0>y1)int_swap(y0,y1);
       for(i = y0;i<=y1;i++)
         LCD_SetPoint(x0,i, color);
-    break;
-    case Verti:
+	  return;
+  }
+  if(y0==y1)
+  {
       if(x0>x1) int_swap(x0,x1);
       for(i = x0;i<=x1;i++)
         LCD_SetPoint(i,y0, color);
-    break;
-    case Slash:
-      /* Bresenham's line algorithm  */
- 	  dx = x1-x0;
-      dy = y1-y0;
-      bool steep = (abs(dy) > abs(dx));
-      if(steep)
-      {
-        int_swap(x0, y0);
-        int_swap(x1, y1);
-      }
-      if (x0 > x1 )
-      {
-        int_swap(x0, x1);
-        int_swap(y0, y1);
-      }
-      dx = x1-x0;
-      dy = y1-y0;
-      int16_t deltay = abs(dy);
-
-       float slope  = dy/dx;
-
-       int16_t ystep = (y0 < y1)?1:-1;
-       float y = y0+0.5;
-
-       for (i=x0;i<=x1;i++)
-       {
-          if(steep)
-            LCD_SetPoint((uint16_t)y, i, color);
-          else
-            LCD_SetPoint(i,(uint16_t)y, color);
-            y+=slope;
-
-       }
-    break;
-
+		return;
   }
+  int16_t sx,sy;
+  q7_t dx,dy;
+  line_type ltype;
+  
+  /* Bresenham's line algorithm  */
+  dx = x1-x0;
+  dy = y1-y0;
+  bool steep = (abs(dy) > abs(dx));
+  if(steep)
+  {
+	int_swap(x0, y0);
+	int_swap(x1, y1);
+  }
+  if (x0 > x1 )
+  {
+	int_swap(x0, x1);
+	int_swap(y0, y1);
+  }
+  dx = x1-x0;
+  dy = y1-y0;
+  int16_t deltay = abs(dy);
 
+   float slope  = dy/dx;
 
+   int16_t ystep = (y0 < y1)?1:-1;
+   float y = y0+0.5;
+
+   for (i=x0;i<=x1;i++)
+   {
+	  if(steep)
+		LCD_SetPoint((uint16_t)y, i, color);
+	  else
+		LCD_SetPoint(i,(uint16_t)y, color);
+		y+=slope;
+
+   }
 
 }
 void LCD_DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color)
