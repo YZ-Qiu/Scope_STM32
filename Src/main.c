@@ -95,10 +95,17 @@ void LED1_blink_Task(void const * argument)
 #define PI 3.14159265
 void ADC_Task(void const * argument)
 {
-  LCD_Initializtion();
  // Tpad_Init();
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
   HAL_ADC_Start(&hadc1);
+  for(;;)
+  {
+  	LCD_Clear(Red);
+	osDelay(1000);
+	LCD_Clear(Green);
+	osDelay(1000);
+	
+  }
 /*
   uint16_t result[320],i;
   double param = 30.0;
@@ -227,6 +234,8 @@ int main(void)
   MX_RNG_Init();
   MX_SPI3_Init();
   MX_ADC1_Init();
+  LCD_Initializtion();
+ 
 
 
 
@@ -300,7 +309,10 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 8;
-
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+		Error_Handler();
+  }
 
     /**Initializes the CPU, AHB and APB busses clocks
     */
