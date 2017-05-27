@@ -80,6 +80,8 @@ void MX_FREERTOS_Init(void);
 osThreadId LED1_Handle;
 osThreadId LED2_Handle;
 __IO uint16_t ADC_val=0;
+static uint16_t ADC_buffer[320]={0};
+static uint16_t smp_cnt = 0;
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
 
 void LED1_blink_Task(void const * argument)
@@ -94,12 +96,13 @@ void LED1_blink_Task(void const * argument)
 void ADC_Task(void const * argument)
 {
   LCD_Initializtion();
-  Tpad_Init();
+ // Tpad_Init();
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
   HAL_ADC_Start(&hadc1);
-
+/*
   uint16_t result[320],i;
   double param = 30.0;
+  
     for(i =40;i<240;i+=40)
   {
     LCD_DrawLine( 0, i,320, i ,Red);
@@ -126,7 +129,7 @@ void ADC_Task(void const * argument)
     for(j = s;j<b;j++)
       LCD_SetPoint(i,j,Green);
   }
-  /*
+  
  LCD_DrawLine( 1,1,200,200,Green);
  LCD_DrawLine( 1,239,319,1,Blue);
        for(i =0;i<240;i+=1)
@@ -134,16 +137,51 @@ void ADC_Task(void const * argument)
       LCD_SetPoint(i,i,Blue);
   }
 */
-    for(;;){}
 
-  for(;;)
+  uint16_t buf_i =0;
+  //Assume 42MHz sample rate---> down scale to 420Hz
+	char str[32],buf_str[32];
+	LCD_print(10, 10, "test");
+/*
+		LCD_DrawLine( 0,51,1,51,Green);
+		LCD_DrawLine( 1,51,2,54,Green);
+		LCD_DrawLine( 2,54,3,53,Green);
+		LCD_DrawLine( 3,53,4,51,Green);
+*/						
+
+	for(;;)
   {
-    char str[32];
-    sprintf(str,"%d",ADC_val);
+  /*
+			LCD_printColor(10, 50, str, Black);
+			sprintf(str,"%d",smp_cnt);
+			LCD_print(10, 50, str);
+*/
+  		osDelay(1);  //inevitable ,or lcd won't display,dont know why
+		if(smp_cnt>=100)
+		{
+			if(buf_i==320)
+				buf_i=0;
+				
+			if(buf_i != 0)
+			{
+				LCD_DrawLine( buf_i,ADC_buffer[buf_i],buf_i+1,ADC_buffer[buf_i+1],Black);
+				ADC_buffer[buf_i] = (ADC_val)*(240.0/4096.0);
+				LCD_DrawLine( buf_i-1,ADC_buffer[buf_i-1],buf_i,ADC_buffer[buf_i],Green);
+				
+				LCD_printColor(10, 110, str,Black);
+				sprintf(str,"%d",ADC_val);
+				LCD_print(10, 110, str);
 
-    LCD_print(10, 50, str);
-    osDelay(300);
-    LCD_printColor(10, 30, str, Black);
+			}
+			else
+			{
+				
+				LCD_DrawLine( 0,ADC_buffer[0],1,ADC_buffer[1],Black);
+				ADC_buffer[buf_i] = (ADC_val)*240/4096;
+			}
+			buf_i++;
+			smp_cnt = 0;
+		}
 
    }
 
@@ -195,8 +233,8 @@ int main(void)
 
 
   /* Call init function for freertos objects (in freertos.c) */
-  osThreadDef(LED1, LED1_blink_Task,osPriorityNormal ,1, 1024);
-  LED1_Handle = osThreadCreate(osThread(LED1), NULL);
+//  osThreadDef(LED1, LED1_blink_Task,osPriorityNormal ,1, 1024);
+ // LED1_Handle = osThreadCreate(osThread(LED1), NULL);
 
   osThreadDef(LED2, ADC_Task, osPriorityRealtime, 1, 1024);
   LED2_Handle = osThreadCreate(osThread(LED2), NULL);
@@ -234,6 +272,7 @@ int main(void)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   ADC_val = HAL_ADC_GetValue(&hadc1);
+  smp_cnt++;
 }
 
 
@@ -295,33 +334,5 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler */
 }
-
-#ifdef USE_FULL_ASSERT
-
-/**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
-void assert_failed(uint8_t* file, uint32_t line)
-{
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-    ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
-
-}
-
-#endif
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
