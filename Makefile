@@ -21,12 +21,15 @@ EXECUTABLE = $(OUTDIR)/$(PROJECT).elf
 MAP_FILE = $(OUTDIR)/$(PROJECT).map
 
 SRC_DIR  =	 Drivers/STM32F4xx_HAL_Driver/Src \
-			 Src
+			 Src \
+			 Src/ui
 
 INC_DIR = 	 Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 			 Drivers/CMSIS/Include \
 		 	 Drivers/STM32F4xx_HAL_Driver/Inc \
 			 Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+			 Inc/images \
+		 	 Inc/ui \
 			 Inc
 ######################################
 # source
@@ -66,7 +69,12 @@ endif
 # Generate dependency information
 CFLAGS += -std=c99  -MD -MP -MF .dep/$(@F).d
 #Floating point 
-CFLAGS +=-DARM_MATH_CM4  -D__FPU_PRESENT  -ffast-math
+CFLAGS +=-DARM_MATH_CM4  -D__FPU_PRESENT
+# Optimizations
+CFLAGS += -O3 -ffast-math \
+		  -ffunction-sections -fdata-sections \
+		  -fno-common \
+		  --param max-inline-insns-single=1000 \
 #######################################
 # LDFLAGS
 #######################################
@@ -97,7 +105,7 @@ OBJS = $(addprefix $(OUTDIR)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
 # list of ASM program OBJS
 OBJS += $(addprefix $(OUTDIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
-OBJS += $(RTOSOBJS)
+OBJS += $(RTOSOBJS) $(UGFXOBJS) $(FATOBJS)
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 $(OUTDIR)/%.o: %.c Makefile | $(OUTDIR)
 	@echo "   MAIN  |   CC    "$@

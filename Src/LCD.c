@@ -29,46 +29,15 @@
 static uint8_t LCD_Code;
 
 /* Private define ------------------------------------------------------------*/
-#define  ILI9320    0  /* 0x9320 */
 #define  ILI9325    1  /* 0x9325 */
-#define  ILI9328    2  /* 0x9328 */
-#define  ILI9331    3  /* 0x9331 */
 #define  SSD1298    4  /* 0x8999 */
 #define  LCD    5  /* 0x8989 */
-#define  ST7781     6  /* 0x7783 */
-#define  LGDP4531   7  /* 0x4531 */
-#define  SPFD5408B  8  /* 0x5408 */
-#define  R61505U    9  /* 0x1505 0x0505 */
-#define  HX8347D    10 /* 0x0047 */
-#define  HX8347A    11 /* 0x0047 */
-#define  LGDP4535   12 /* 0x4535 */
-#define  SSD2119    13 /* 3.5 LCD 0x9919 */
 
-/* Private function prototypes -----------------------------------------------*/
-
-
-/*******************************************************************************
-* Function Name  : Delay
-* Description    : Delay Time
-* Input          : - nCount: Delay Time
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 void LCD_Delay(unsigned char i)
 {
 	while(i--);
 }
 
-
-/*******************************************************************************
-* Function Name  : LCD_Configuration
-* Description    : Configure the LCD Control pins and FSMC Parallel interface
-* Input          : None
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 static void LCD_Configuration(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -98,14 +67,6 @@ static void LCD_Configuration(void)
 }
 
 
-/*******************************************************************************
-* Function Name  : LCD_WriteReg
-* Description    :
-* Input          : - index:
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 __inline void LCD_WriteIndex(uint16_t index)
 {
 	Clr_Rs;
@@ -117,14 +78,7 @@ __inline void LCD_WriteIndex(uint16_t index)
 	Set_nWr;
 }
 
-/*******************************************************************************
-* Function Name  : LCD_WriteReg
-* Description    :
-* Input          : - index:
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
+
 __inline void LCD_WriteData(uint16_t data)
 {
 	Set_Rs;
@@ -135,14 +89,6 @@ __inline void LCD_WriteData(uint16_t data)
 	Set_nWr;
 }
 
-/*******************************************************************************
-* Function Name  : LCD_ReadData
-* Description    :
-* Input          : None
-* Output         : None
-* Return         :
-* Attention		 : None
-*******************************************************************************/
 __inline uint16_t LCD_ReadData(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -176,15 +122,6 @@ __inline uint16_t LCD_ReadData(void)
     return value;
 }
 
-/*******************************************************************************
-* Function Name  : LCD_WriteReg
-* Description    : Writes to the selected LCD register.
-* Input          : - LCD_Reg: address of the selected register.
-*                  - LCD_RegValue: value to write to the selected register.
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 __inline void LCD_WriteReg(uint16_t LCD_Reg,uint16_t LCD_RegValue)
 {
 	/* Write 16-bit Index, then Write Reg */
@@ -195,14 +132,6 @@ __inline void LCD_WriteReg(uint16_t LCD_Reg,uint16_t LCD_RegValue)
 	Set_Cs;
 }
 
-/*******************************************************************************
-* Function Name  : LCD_WriteReg
-* Description    : Reads the selected LCD Register.
-* Input          : None
-* Output         : None
-* Return         : LCD Register Value.
-* Attention		 : None
-*******************************************************************************/
 __inline uint16_t LCD_ReadReg(uint16_t LCD_Reg)
 {
 	uint16_t LCD_RAM;
@@ -255,15 +184,6 @@ static void LCD_SetCursor( uint16_t Xpos, uint16_t Ypos )
 
 }
 
-/*******************************************************************************
-* Function Name  : delay_ms
-* Description    : Delay Time
-* Input          : - cnt: Delay Time
-* Output         : None
-* Return         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 void delay_ms(uint16_t ms)
 {
 	uint16_t i,j;
@@ -273,14 +193,7 @@ void delay_ms(uint16_t ms)
 	}
 }
 
-/*******************************************************************************
-* Function Name  : LCD_Initializtion
-* Description    : SSD1963 Resets
-* Input          : None
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
+
 void LCD_Initializtion(void)
 {
 
@@ -288,10 +201,9 @@ void LCD_Initializtion(void)
 
   //GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable , ENABLE);
 
+	//reset hardware
 	Clr_Reset;
-
 	delay_ms(100);
-
   	Set_Reset;
   	Set_Backlight;
 
@@ -380,14 +292,7 @@ void LCD_Initializtion(void)
     	delay(500);
 }
 
-/*******************************************************************************
-* Function Name  : LCD_Clear
-* Description    :
-* Input          : - Color: Screen Color
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
+
 void LCD_Clear(uint16_t Color)
 {
 	uint32_t index=0;
@@ -402,14 +307,6 @@ void LCD_Clear(uint16_t Color)
 	Set_Cs;
 }
 
-/******************************************************************************
-* Function Name  : LCD_BGR2RGB
-* Description    : RRRRRGGGGGGBBBBB convert to BBBBBGGGGGGRRRRR
-* Input          : RGB color
-* Output         : None
-* Return         : RGB color
-* Attention		 :
-*******************************************************************************/
 static uint16_t LCD_BGR2RGB(uint16_t color)
 {
 	uint16_t  r, g, b, rgb;
@@ -423,15 +320,7 @@ static uint16_t LCD_BGR2RGB(uint16_t color)
 	return( rgb );
 }
 
-/******************************************************************************
-* Function Name  : LCD_GetPoint
-* Description    : Get color of the point
-* Input          : - Xpos: Row Coordinate
-*                  - Ypos: Line Coordinate
-* Output         : None
-* Return         : Screen Color
-* Attention		 : None
-*******************************************************************************/
+
 uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos)
 {
 	uint16_t dummy;
@@ -442,26 +331,13 @@ uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos)
 
 	switch( LCD_Code )
 	{
-		case ST7781:
-		case LGDP4531:
-		case LGDP4535:
 		case LCD:
 		case SSD1298:
       dummy = LCD_ReadData();
       dummy = LCD_ReadData();
       Set_Cs;
  		  return  dummy;
-    case HX8347A:
-	  case HX8347D:
-    {
-      uint8_t red,green,blue;
-      red = LCD_ReadData()>>3;
-      green = LCD_ReadData()>>3;
-      blue = LCD_ReadData()>>2;
-      dummy = ( green << 11 ) | (blue << 5 ) | red;
-		}
-      Set_Cs;
-      return  dummy;
+    
     default:	/* 0x9320 0x9325 0x9328 0x9331 0x5408 0x1505 0x0505 0x9919 */
       dummy = LCD_ReadData();
       dummy = LCD_ReadData();
@@ -469,16 +345,6 @@ uint16_t LCD_GetPoint(uint16_t Xpos,uint16_t Ypos)
       return  LCD_BGR2RGB( dummy );
 	}
 }
-
-/******************************************************************************
-* Function Name  : LCD_SetPoint
-* Description    :
-* Input          : - Xpos: Row Coordinate
-*                  - Ypos: Line Coordinate
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point)
 {
 	if( Xpos >= MAX_X || Ypos >= MAX_Y )
@@ -489,20 +355,6 @@ void LCD_SetPoint(uint16_t Xpos,uint16_t Ypos,uint16_t point)
 	LCD_WriteReg(0x0022,point);
 }
 
-
-
-/******************************************************************************
-* Function Name  : LCD_DrawLine
-* Description    : Bresenham's line algorithm
-* Input          : - x0:
-*                  - y0:
-*       				   - x1:
-*       		       - y1:
-*                  - color:
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 
 void LCD_DrawLine( uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1 ,uint16_t color )
 {
@@ -710,18 +562,7 @@ void LCD_DrawCross(uint16_t Xpos, uint16_t Ypos, uint16_t in_color, uint16_t out
   LCD_DrawLine(Xpos+7,Ypos-15,Xpos+15,Ypos-15,out_color);
   LCD_DrawLine(Xpos+15,Ypos-15,Xpos+15,Ypos-7,out_color);
 }
-/******************************************************************************
-* Function Name  : PutChar
-* Description    :
-* Input          : - Xpos:
-*                  - Ypos:
-*				           - ASCI:
-*				           - charColor:
-*				           - bkColor:
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
+
 
 void putChar(uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t charColor, uint16_t bkColor)
 {
@@ -814,18 +655,6 @@ void cleanPutCharFont( uint16_t Xpos, uint16_t Ypos, uint8_t ASCII, uint16_t cha
     }
 }
 
-/******************************************************************************
-* Function Name  : LCD_Text
-* Description    :
-* Input          : - Xpos:
-*                  - Ypos:
-*				           - str:
-*				           - charColor:
-*				           - bkColor:
-* Output         : None
-* Return         : None
-* Attention		 : None
-*******************************************************************************/
 /*
 Available font type:
     MS_GOTHIC_8x16
