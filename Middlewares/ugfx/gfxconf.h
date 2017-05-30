@@ -154,7 +154,7 @@
 //    #define GWIN_NEED_FLASHING                       FALSE
 //        #define GWIN_FLASHING_PERIOD                 250
 
-//#define GWIN_NEED_CONSOLE                            FALSE
+#define GWIN_NEED_CONSOLE                            TRUE
 //    #define GWIN_CONSOLE_USE_HISTORY                 FALSE
 //        #define GWIN_CONSOLE_HISTORY_AVERAGING       FALSE
 //        #define GWIN_CONSOLE_HISTORY_ATCREATE        FALSE
@@ -229,10 +229,10 @@
 #define GFX_USE_GINPUT                               TRUE
 
 #define GINPUT_NEED_MOUSE                            TRUE
-//    #define GINPUT_TOUCH_STARTRAW                    FALSE
+    #define GINPUT_TOUCH_STARTRAW                    TRUE
 //    #define GINPUT_TOUCH_NOTOUCH                     FALSE
-    #define GINPUT_TOUCH_NOCALIBRATE                 TRUE
-    #define GINPUT_TOUCH_NOCALIBRATE_GUI             TRUE
+//    #define GINPUT_TOUCH_NOCALIBRATE                 TRUE
+//    #define GINPUT_TOUCH_NOCALIBRATE_GUI             TRUE
 //    #define GINPUT_MOUSE_POLL_PERIOD                 25
 //    #define GINPUT_MOUSE_CLICK_TIME                  300
 //    #define GINPUT_TOUCH_CXTCLICK_TIME               700

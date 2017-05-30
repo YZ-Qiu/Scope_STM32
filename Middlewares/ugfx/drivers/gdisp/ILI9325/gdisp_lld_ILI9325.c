@@ -193,7 +193,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
     /* Initialise the GDISP structure */
     g->g.Width = GDISP_SCREEN_WIDTH;
     g->g.Height = GDISP_SCREEN_HEIGHT;
-    g->g.Orientation = GDISP_ROTATE_270;
+    g->g.Orientation = GDISP_ROTATE_90;
     g->g.Powermode = powerOn;
     g->g.Backlight = GDISP_INITIAL_BACKLIGHT;
     g->g.Contrast = GDISP_INITIAL_CONTRAST;

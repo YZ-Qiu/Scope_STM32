@@ -253,45 +253,13 @@ void Tpad_Calibrate(void)
    ScreenSample[i].x= Ptr->x;
    ScreenSample[i].y= Ptr->y;
    //show sample value
-   char str[4];
-   sprintf( str, "x=%d",ScreenSample[i].x);
-   LCD_print(30, 90,str);
-   sprintf( str, "y=%d",ScreenSample[i].y);
-   LCD_print(30, 110,str);
-   delay(1000);
+
   }
 
   setCalibrationMatrix( &DisplaySample[0],&ScreenSample[0],&matrix );
   LCD_Clear(Black);
 
-  //The code written below (in this function)is for testing , feel free to remove
-  char str[8];
 
-   for(;;)
-  {
-  // LCD_Clear(Black);
-   LCD_print(44,10,"Test coord");
-   do
-   {
-     Ptr = Read_Tpad();
-   }
-   while( Ptr == (void*)0 );
-
-   getDisplayPoint( &display,Ptr,&matrix );
-
-  LCD_FillCircle(display.x, display.y, 2, Red);
-
-  /*
-   char str[8];
-   sprintf( str, "x=%d",Ptr->x);
-   LCD_print(30, 90,str, Green, FONT6x8);
-   sprintf( str, "y=%d",Ptr->y);
-
-   LCD_print(30, 110,str, Green, FONT6x8);
-
-   delay(1000);
-	 */
-  }
 
 }
 

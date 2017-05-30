@@ -166,22 +166,8 @@ static void LCD_SetCursor( uint16_t Xpos, uint16_t Ypos )
 		Xpos = MAX_Y - 1 - temp;
 	#endif
 
-
-	if (LCD_Code == LCD)
-	{
-
-			 LCD_WriteReg(0x004e, Xpos);
-      		 LCD_WriteReg(0x004f, Ypos);
-	}
-	else //9325
-	{
-
 			LCD_WriteReg(0x0020, Xpos);
 			LCD_WriteReg(0x0021, Ypos);
-			//LCD_WriteIndex(0x0022);
-	}
-
-
 }
 
 void delay_ms(uint16_t ms)

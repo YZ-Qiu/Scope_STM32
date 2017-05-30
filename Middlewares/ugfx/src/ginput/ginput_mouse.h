@@ -150,7 +150,7 @@ extern "C" {
 	 * @note	An invalid instance will also return 0.
 	 */
 	uint32_t ginputCalibrateMouse(unsigned instance);
-
+	
     /**
      * @brief   Load a set of mouse calibration data
      * @return  A pointer to the data or NULL on failure

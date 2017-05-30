@@ -21,6 +21,7 @@
 
 static bool_t init_board(GMouse* m, unsigned driverinstance) {
 
+
 }
 
 static inline bool_t getpin_pressed(GMouse* m) {

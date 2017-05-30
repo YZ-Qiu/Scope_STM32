@@ -11,6 +11,7 @@
  */
 #include "gfx.h"
 
+#include "ginput_mouse.h"
 #if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
 
 // Just to make code easier

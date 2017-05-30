@@ -16,6 +16,7 @@
 
 
 #include "gfx.h"
+#include "ui.h"
 
 void SystemClock_Config(void);
 void Error_Handler(void);
@@ -23,32 +24,7 @@ void MX_FREERTOS_Init(void);
 
 
 osThreadId UI_TaskHandle;
-void UserInterface()
-{
 
-    coord_t   width, height;
-  coord_t   i, j;
-
-    // Initialize and clear the display
-    gfxInit();
-
-    // Get the screen size
-  width = gdispGetWidth();
-  height = gdispGetHeight();
- //   LCD_Clear(Black);
-    // Code Here
-  gdispDrawBox(10, 10, width/2, height/2, Yellow);
-    gdispFillArea(width/2, height/2, width/2-10, height/2-10, uBlue);
-    gdispDrawLine(5, 30, width-50, height-40, uRed);
-       
-  for(i = 5, j = 0; i < width && j < height; i += 7, j += i/20)
-      gdispDrawPixel(i, j, White);
-
-    while(1) {
-      gfxSleepMilliseconds(500);
-    }   
-  
-}
 
 /*
 osThreadId LED1_Handle;
@@ -75,9 +51,6 @@ int main(void)
   MX_SPI3_Init();
 //  LCD_Initializtion();
  
-
-//  osThreadDef(LED1, LED1_blink_Task,osPriorityNormal ,1, 1024);
-//  LED1_Handle = osThreadCreate(osThread(LED1), NULL);
   osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 2048);
   UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
 //HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
