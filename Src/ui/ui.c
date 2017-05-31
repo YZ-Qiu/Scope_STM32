@@ -111,13 +111,18 @@ void UserInterface()
   isFirstTime = TRUE;
   isCalibrated = (vmt->d.flags & GMOUSE_VFLG_CALIBRATE) ? FALSE : TRUE;
   calerr = 0;
-
+  //x,y,w,h
+   //gdispFillArea(50,50,10,100,White);
+ //  for(;;){}
   /*
    * Test: Device Type
    */
 
 StepDeviceType:
+
   DrawHeader("1. Device Type", isCalibrated, isCalibrated && !isFirstTime, isCalibrated);
+//  gdispDrawLine(0,50,100,50,White);
+ // gdispDrawLine(50,0,50,100,White);
 
   // Get the type of device and the current mode
   isTouch = (vmt->d.flags & GMOUSE_VFLG_TOUCH) ? TRUE : FALSE;
@@ -265,6 +270,7 @@ StepCalibrate:
 
 StepMouseCoords:
   DrawHeader("4. Show Mouse Coordinates", TRUE, TRUE, TRUE);
+  //for(;;){}
   if (isTouch)
     gwinPrintf(ghc, "Press and hold on the surface.\n\n");
   else

@@ -138,70 +138,65 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
   	Set_Backlight;
 	// Get the bus for the following initialisation commands
 	//acquire_bus(g);
-	
-	write_reg(g, 0x00, 0x0001);		gfxSleepMicroseconds(5);
-	write_reg(g, 0x03, 0xA8A4);    	gfxSleepMicroseconds(5);
-	write_reg(g, 0x0C, 0x0000);    	gfxSleepMicroseconds(5);
-	write_reg(g, 0x0D, 0x080C);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x0E, 0x2B00);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x1E, 0x00B0);    	gfxSleepMicroseconds(5);
-	write_reg(g, 0x01, 0x2B3F);		gfxSleepMicroseconds(5);
-    write_reg(g, 0x02, 0x0600);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x10, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x11, 0x6070);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x05, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x06, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x16, 0xEF1C);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x17, 0x0003);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x07, 0x0133);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x0B, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x0F, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x41, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x42, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x48, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x49, 0x013F);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x4A, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x4B, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x44, 0xEF00);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x45, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x46, 0x013F);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x30, 0x0707);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x31, 0x0204);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x32, 0x0204);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x33, 0x0502);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x34, 0x0507);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x35, 0x0204);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x36, 0x0204);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x37, 0x0502);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x3A, 0x0302);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x3B, 0x0302);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x23, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x24, 0x0000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x25, 0x8000);    	gfxSleepMicroseconds(5);
-    write_reg(g, 0x4f, 0x0000);		gfxSleepMicroseconds(5);
-    write_reg(g, 0x4e, 0x0000);		gfxSleepMicroseconds(5);
+		write_reg(g,0x0000,0x0001);    gfxSleepMicroseconds(50);   /* Enable LCD Oscillator */
+	    write_reg(g,0x0003,0xA8A4);    gfxSleepMicroseconds(50);   
+	    write_reg(g,0x000C,0x0000);    gfxSleepMicroseconds(50);   
+	    write_reg(g,0x000D,0x080C);    gfxSleepMicroseconds(50);   
+	    write_reg(g,0x000E,0x2B00);    gfxSleepMicroseconds(50);   
+	    write_reg(g,0x001E,0x00B0);    gfxSleepMicroseconds(50);   
+	    write_reg(g,0x0001,0x2B3F);    gfxSleepMicroseconds(50);   /* 320*240 0x2B3F */
+	    write_reg(g,0x0002,0x0600);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0010,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0011,0x6070);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0005,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0006,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0016,0xEF1C);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0017,0x0003);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0007,0x0133);    gfxSleepMicroseconds(50);         
+	    write_reg(g,0x000B,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x000F,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0041,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0042,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0048,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0049,0x013F);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x004A,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x004B,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0044,0xEF00);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0045,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0046,0x013F);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0030,0x0707);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0031,0x0204);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0032,0x0204);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0033,0x0502);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0034,0x0507);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0035,0x0204);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0036,0x0204);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0037,0x0502);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x003A,0x0302);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x003B,0x0302);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0023,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0024,0x0000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x0025,0x8000);    gfxSleepMicroseconds(50);
+	    write_reg(g,0x004f,0);
+	    write_reg(g,0x004e,0);
 	#if (DISP_ORIENTATION == 0)
-		write_reg(g, 0x0011,0x6070);	
+		write_reg(g,0x0011,0x6070);
 	#elif (DISP_ORIENTATION == 90)
 		write_reg(g,0x0011,0x6058);
 	#elif (DISP_ORIENTATION == 180)
 		write_reg(g,0x0011,0x6040);
 	#elif (DISP_ORIENTATION == 270)
-   		write_reg(g,0x0011,0x6068);
+    	write_reg(g,0x0011,0x6068);
 	#endif
+	
     // Finish Init
     post_init_board(g);
 
- 	// Release the bus
-	release_bus(g);
-	
-	/* Turn on the back-light */
-	set_backlight(g, GDISP_INITIAL_BACKLIGHT);
 
 	/* Initialise the GDISP structure */
 	g->g.Width = GDISP_SCREEN_WIDTH;
 	g->g.Height = GDISP_SCREEN_HEIGHT;
-	g->g.Orientation = GDISP_ROTATE_0;
+	g->g.Orientation = DISP_ORIENTATION;
 	g->g.Powermode = powerOn;
 	g->g.Backlight = GDISP_INITIAL_BACKLIGHT;
 	g->g.Contrast = GDISP_INITIAL_CONTRAST;

@@ -40,6 +40,10 @@ static inline void post_init_board(GDisplay *g) {
 static inline void setpin_reset(GDisplay *g, bool_t state) {
 	(void) g;
 	(void) state;
+	if(state == true)
+		Clr_Reset;
+	else
+		Set_Reset;
 }
 
 static inline void set_backlight(GDisplay *g, uint8_t percent) {
@@ -57,8 +61,6 @@ static inline void release_bus(GDisplay *g) {
 }
 
 static inline void write_index(GDisplay *g, uint16_t index) {
-	(void) g;
-	(void) index;
 	Clr_Rs;
 	Set_nRd;
 	LCD_Delay(0);
@@ -69,9 +71,8 @@ static inline void write_index(GDisplay *g, uint16_t index) {
 }
 
 static inline void write_data(GDisplay *g, uint16_t data) {
-	(void) g;
-	(void) data;
-		Set_Rs;
+
+	Set_Rs;
 	LCD_Delay(0);
 	GPIOE->ODR = data;	 /* GPIO_Write(GPIOE,data); */
 	LCD_Delay(0);

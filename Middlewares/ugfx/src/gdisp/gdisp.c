@@ -185,6 +185,39 @@ static INLINE void drawpixel(GDisplay *g) {
 // Resets the streaming area if GDISP_HARDWARE_STREAM_WRITE and GDISP_HARDWARE_STREAM_POS is set.
 static INLINE void fillarea(GDisplay *g) {
 
+	// Next best is hardware streaming
+	//FUJI use this
+	#if GDISP_HARDWARE_FILLS != TRUE && GDISP_HARDWARE_STREAM_WRITE
+		#if GDISP_HARDWARE_STREAM_WRITE == HARDWARE_AUTODETECT
+			if (gvmt(g)->writestart)
+		#endif
+		{
+			uint32_t	area;
+			#if GDISP_HARDWARE_STREAM_POS
+				if ((g->flags & GDISP_FLG_SCRSTREAM)) {
+					gdisp_lld_write_stop(g);
+					g->flags &= ~GDISP_FLG_SCRSTREAM;
+				}
+			#endif
+
+			area = (uint32_t)g->p.cx * g->p.cy;
+			gdisp_lld_write_start(g);  //set_viewport
+			#if GDISP_HARDWARE_STREAM_POS
+				#if GDISP_HARDWARE_STREAM_POS == HARDWARE_AUTODETECT
+					if (gvmt(g)->writepos)
+				#endif
+			gdisp_lld_write_pos(g); //set_cursor
+			#endif
+			for(; area; area--)
+			{
+				gdisp_lld_write_color(g);
+			//	gfxSleepMilliseconds(5);
+			}
+				
+			gdisp_lld_write_stop(g);
+			return;
+		}
+	#endif
 	// Best is hardware accelerated area fill
 	#if GDISP_HARDWARE_FILLS
 		#if GDISP_HARDWARE_FILLS == HARDWARE_AUTODETECT
@@ -196,39 +229,7 @@ static INLINE void fillarea(GDisplay *g) {
 			return;
 		}
 	#endif
-
-	// Next best is hardware streaming
-	//FUJI use this
-	#if GDISP_HARDWARE_FILLS != TRUE && GDISP_HARDWARE_STREAM_WRITE
-		#if GDISP_HARDWARE_STREAM_WRITE == HARDWARE_AUTODETECT
-			if (gvmt(g)->writestart)
-		#endif
-		{
-			
-			uint32_t	area;
-
-			#if GDISP_HARDWARE_STREAM_POS
-				if ((g->flags & GDISP_FLG_SCRSTREAM)) {
-					gdisp_lld_write_stop(g);
-					g->flags &= ~GDISP_FLG_SCRSTREAM;
-				}
-			#endif
-
-			area = (uint32_t)g->p.cx * g->p.cy;
-			gdisp_lld_write_start(g);
-			#if GDISP_HARDWARE_STREAM_POS
-				#if GDISP_HARDWARE_STREAM_POS == HARDWARE_AUTODETECT
-					if (gvmt(g)->writepos)
-				#endif
-				gdisp_lld_write_pos(g);
-			#endif
-			for(; area; area--)
-				gdisp_lld_write_color(g);
-			gdisp_lld_write_stop(g);
-			return;
-		}
-	#endif
-
+	
 	// Worst is pixel drawing
 	#if GDISP_HARDWARE_FILLS != TRUE && GDISP_HARDWARE_STREAM_WRITE != TRUE && GDISP_HARDWARE_DRAWPIXEL
 		// The following test is unneeded because we are guaranteed to have draw pixel if we don't have streaming
@@ -258,7 +259,9 @@ static INLINE void fillarea(GDisplay *g) {
 static void hline_clip(GDisplay *g) {
 	// Swap the points if necessary so it always goes from x to x1
 	if (g->p.x1 < g->p.x) {
-		g->p.cx = g->p.x; g->p.x = g->p.x1; g->p.x1 = g->p.cx;
+		g->p.cx = g->p.x;
+		g->p.x = g->p.x1;
+		g->p.x1 = g->p.cx;
 	}
 
 	// Clipping
@@ -346,7 +349,9 @@ static void hline_clip(GDisplay *g) {
 static void vline_clip(GDisplay *g) {
 	// Swap the points if necessary so it always goes from y to y1
 	if (g->p.y1 < g->p.y) {
-		g->p.cy = g->p.y; g->p.y = g->p.y1; g->p.y1 = g->p.cy;
+		g->p.cy = g->p.y;
+		g->p.y = g->p.y1;
+		g->p.y1 = g->p.cy;
 	}
 
 	// Clipping
@@ -508,6 +513,10 @@ static void line_clip(GDisplay *g) {
 	static void StartupLogoDisplay(GDisplay *g) {
 		coord_t			x, y, w;
 		const coord_t *	p;
+
+		 //  gdispFillArea(50,50,10,100,White);
+		// gdispGFillArea(g, 50, 50,10, 100, GDISP_STARTUP_LOGO_COLOR);
+		
 		static const coord_t blks[] = {
 				// u
 				2, 6, 1, 10,
@@ -539,8 +548,10 @@ static void line_clip(GDisplay *g) {
 		y = (g->g.Height - (16*1)*w)/2;
 
 		// Simple but crude!
+		
 		for(p = blks; p < blks+sizeof(blks)/sizeof(blks[0]); p+=4)
 			gdispGFillArea(g, x+p[0]*w, y+p[1]*w, p[2]*w, p[3]*w, GDISP_STARTUP_LOGO_COLOR);
+		
 	}
 #endif
 

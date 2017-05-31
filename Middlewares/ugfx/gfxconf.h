@@ -22,7 +22,7 @@
 #ifndef _GFXCONF_H
 #define _GFXCONF_H
 
-
+#include "LCD.h"
 ///////////////////////////////////////////////////////////////////////////
 // GOS - One of these must be defined, preferably in your Makefile       //
 ///////////////////////////////////////////////////////////////////////////
@@ -110,7 +110,7 @@
 //#define GDISP_NEED_PIXMAP                            FALSE
 //    #define GDISP_NEED_PIXMAP_IMAGE                  FALSE
 
-//#define GDISP_DEFAULT_ORIENTATION                    GDISP_ROTATE_LANDSCAPE    // If not defined the native hardware orientation is used.
+#define GDISP_DEFAULT_ORIENTATION                    DISP_ORIENTATION    // If not defined the native hardware orientation is used.
 //#define GDISP_LINEBUF_SIZE                           128
 #define GDISP_STARTUP_COLOR                          Black
 #define GDISP_NEED_STARTUP_LOGO                      TRUE
@@ -120,9 +120,9 @@
 //#define GDISP_DRIVER_LIST                            GDISPVMT_ILI9341
 //    #ifdef GDISP_DRIVER_LIST
 //        // For code and speed optimization define as TRUE or FALSE if all controllers have the same capability
-//        #define GDISP_HARDWARE_STREAM_WRITE          FALSE
-//        #define GDISP_HARDWARE_STREAM_READ           FALSE
-//        #define GDISP_HARDWARE_STREAM_POS            FALSE
+//        #define GDISP_HARDWARE_STREAM_WRITE          FALSE  //TRUE see gfisp_lld_config.h
+//        #define GDISP_HARDWARE_STREAM_READ           FALSE  //TRUE
+//        #define GDISP_HARDWARE_STREAM_POS            FALSE  //TRUE
 //        #define GDISP_HARDWARE_DRAWPIXEL             FALSE
 //        #define GDISP_HARDWARE_CLEARS                FALSE
 //        #define GDISP_HARDWARE_FILLS                 FALSE
