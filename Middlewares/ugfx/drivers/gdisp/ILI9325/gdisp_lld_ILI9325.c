@@ -67,7 +67,6 @@ static void set_cursor(GDisplay *g)
 			write_index(g, 0x22);
 		return;
 		break;
-
 		case GDISP_ROTATE_180:
 			Xpos = 240 - 1 - g->p.x;
 			Ypos = 320 - 1 - g->p.y;
@@ -79,7 +78,7 @@ static void set_cursor(GDisplay *g)
 		break;
 		//correct
 		case GDISP_ROTATE_270:
-			Xpos = g->p.y;
+			Xpos = 240-1-g->p.y;
 			Ypos = g->p.x;
 		break;
 	}
@@ -92,28 +91,32 @@ static void set_viewport(GDisplay* g) {
 	switch(g->g.Orientation) {
 		default:
 		case GDISP_ROTATE_0:
-		case GDISP_ROTATE_180:
 			write_reg(g, 0x50, g->p.x);
 			write_reg(g, 0x51, g->p.x + g->p.cx - 1);
 			write_reg(g, 0x52, g->p.y);
 			write_reg(g, 0x53, g->p.y + g->p.cy - 1);
-			break;
+			break;		
+		case GDISP_ROTATE_180:
+			write_reg(g, 0x51, 240-1-g->p.x);
+			write_reg(g, 0x50, 240-1-(g->p.x + g->p.cx - 1));
+			write_reg(g, 0x53, 320-1-g->p.y);
+			write_reg(g, 0x52, 320-1-(g->p.y + g->p.cy - 1));
+		break;
 		case GDISP_ROTATE_90:
 		//no problem
 			write_reg(g, 0x50, g->p.y);
 			write_reg(g, 0x51, g->p.y + g->p.cy - 1);
 
-			write_reg(g, 0x53, 320-1-g->p.x);
 			write_reg(g, 0x52, 320-1-(g->p.x + g->p.cx - 1));
+			write_reg(g, 0x53, 320-1-g->p.x);
+
 			break;
 		case GDISP_ROTATE_270:
-			write_reg(g, 0x50, g->p.y);
-			write_reg(g, 0x51, g->p.y + g->p.cy - 1);
-		//	write_reg(g, 0x51, 320-1-(g->p.y));
-		//write_reg(g, 0x50, 320-1-(g->p.y + g->p.cy - 1));
-			
+			write_reg(g, 0x51, 240-1-g->p.y);
+			write_reg(g, 0x50, 240-1-(g->p.y + g->p.cy - 1));
 			write_reg(g, 0x52, g->p.x);
 			write_reg(g, 0x53, g->p.x + g->p.cx - 1);
+
 		break;
 	}
 }

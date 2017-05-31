@@ -49,8 +49,6 @@ typedef enum  bool
 //#define DISP_VER_RESOLUTION				240
 
 
-//270: left write flip , fill work
-//90: left write work , fill suck
 #define DISP_ORIENTATION				 90  // 0 90 180 270
 
 
