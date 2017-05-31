@@ -48,7 +48,7 @@ typedef enum  bool
 //#define DISP_HOR_RESOLUTION				320
 //#define DISP_VER_RESOLUTION				240
 
-#define DISP_ORIENTATION					270  // 0 90 180 270
+#define DISP_ORIENTATION				 90  // 0 90 180 270
 
 
 /* Private define ------------------------------------------------------------*/

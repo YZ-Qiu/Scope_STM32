@@ -125,13 +125,19 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 	init_board(g);
 
 	// Hardware reset
+	/*
 	setpin_reset(g, TRUE);
 	gfxSleepMilliseconds(20);
 	setpin_reset(g, FALSE);
 	gfxSleepMilliseconds(20);
-
+	*/
+	/* Hardware reset */
+	Clr_Reset;
+	delay_ms(100);
+  	Set_Reset;
+  	Set_Backlight;
 	// Get the bus for the following initialisation commands
-	acquire_bus(g);
+	//acquire_bus(g);
 	
 	write_reg(g, 0x00, 0x0001);		gfxSleepMicroseconds(5);
 	write_reg(g, 0x03, 0xA8A4);    	gfxSleepMicroseconds(5);
@@ -174,7 +180,15 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
     write_reg(g, 0x25, 0x8000);    	gfxSleepMicroseconds(5);
     write_reg(g, 0x4f, 0x0000);		gfxSleepMicroseconds(5);
     write_reg(g, 0x4e, 0x0000);		gfxSleepMicroseconds(5);
-
+	#if (DISP_ORIENTATION == 0)
+		write_reg(g, 0x0011,0x6070);	
+	#elif (DISP_ORIENTATION == 90)
+		write_reg(g,0x0011,0x6058);
+	#elif (DISP_ORIENTATION == 180)
+		write_reg(g,0x0011,0x6040);
+	#elif (DISP_ORIENTATION == 270)
+   		write_reg(g,0x0011,0x6068);
+	#endif
     // Finish Init
     post_init_board(g);
 

@@ -29,11 +29,11 @@
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
 
-#ifndef GDISP_SCREEN_HEIGHT
-	#define GDISP_SCREEN_HEIGHT		240
-#endif
 #ifndef GDISP_SCREEN_WIDTH
-	#define GDISP_SCREEN_WIDTH		320
+	#define GDISP_SCREEN_WIDTH		MAX_X
+#endif
+#ifndef GDISP_SCREEN_HEIGHT
+	#define GDISP_SCREEN_HEIGHT		MAX_Y
 #endif
 #ifndef GDISP_INITIAL_CONTRAST
 	#define GDISP_INITIAL_CONTRAST	50
@@ -54,21 +54,32 @@
 #define dummy_read(g)				{ volatile uint16_t dummy; dummy = read_data(g); (void) dummy; }
 #define write_reg(g, reg, data)		{ 	write_index(g, reg); write_data(g, data);}
 
-static void set_cursor(GDisplay *g) {
-	switch(g->g.Orientation) {
+static void set_cursor(GDisplay *g) 
+{
+	int16_t Xpos,Ypos;
+
+	switch(g->g.Orientation)
+	{
 		default:
 		case GDISP_ROTATE_0:
-		case GDISP_ROTATE_180:
-			write_reg(g, 0x20, g->p.x);
-			write_reg(g, 0x21, g->p.y);
-			break;
-
+			Xpos = g->p.x;
+			Ypos = g->p.y;
+		break;
 		case GDISP_ROTATE_90:
+			Xpos = g->p.y;
+			Ypos = 320 - 1 - g->p.x;
+		break;
+		case GDISP_ROTATE_180:
+			Xpos = 240 - 1 - g->p.x;
+			Ypos = 320 - 1 - g->p.y;
+		break;
 		case GDISP_ROTATE_270:
-			write_reg(g, 0x20, g->p.y);
-			write_reg(g, 0x21, g->p.x);
-			break;
+			Xpos = g->p.y;
+			Ypos = g->p.x;
+		break;
 	}
+	write_reg(g, 0x20,Xpos);
+	write_reg(g, 0x21,Ypos);
 	write_index(g, 0x22);
 }
 
@@ -110,7 +121,6 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 
 	// chinese code starts here
 
-		write_reg(g, 0x00e7,0x0010);
 		write_reg(g, 0x0000,0x0001);  	/* start internal osc */
 
 		write_reg(g, 0x0001,(0<<10)|(1<<8));
@@ -184,8 +194,6 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 
         gfxSleepMilliseconds(50);
 
-	// chinese code ends here
-
     // Finish Init
     post_init_board(g);
 
@@ -193,7 +201,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
     /* Initialise the GDISP structure */
     g->g.Width = GDISP_SCREEN_WIDTH;
     g->g.Height = GDISP_SCREEN_HEIGHT;
-    g->g.Orientation = GDISP_ROTATE_90;
+    g->g.Orientation = DISP_ORIENTATION;
     g->g.Powermode = powerOn;
     g->g.Backlight = GDISP_INITIAL_BACKLIGHT;
     g->g.Contrast = GDISP_INITIAL_CONTRAST;

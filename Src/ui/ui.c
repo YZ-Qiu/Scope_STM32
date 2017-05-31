@@ -47,6 +47,7 @@ static int CheckButtons(GEventMouse *pem)
 
 void UserInterface()
 {
+
   GSourceHandle     gs;
   GEventMouse       *pem;
   bool_t          isFirstTime;
@@ -66,6 +67,7 @@ void UserInterface()
   swidth = gdispGetWidth();
   sheight = gdispGetHeight();
 
+  
   // Create our title
   font = gdispOpenFont("UI2");
   gwinSetDefaultFont(font);

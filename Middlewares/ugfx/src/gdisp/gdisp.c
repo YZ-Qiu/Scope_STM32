@@ -192,16 +192,19 @@ static INLINE void fillarea(GDisplay *g) {
 		#endif
 		{
 			gdisp_lld_fill_area(g);
+
 			return;
 		}
 	#endif
 
 	// Next best is hardware streaming
+	//FUJI use this
 	#if GDISP_HARDWARE_FILLS != TRUE && GDISP_HARDWARE_STREAM_WRITE
 		#if GDISP_HARDWARE_STREAM_WRITE == HARDWARE_AUTODETECT
 			if (gvmt(g)->writestart)
 		#endif
 		{
+			
 			uint32_t	area;
 
 			#if GDISP_HARDWARE_STREAM_POS
@@ -558,6 +561,7 @@ static void line_clip(GDisplay *g) {
 void _gdispInit(void)
 {
 	// GDISP_DRIVER_LIST is defined - create each driver instance
+
 	#if defined(GDISP_DRIVER_LIST)
 		{
 			unsigned	i;
@@ -571,6 +575,7 @@ void _gdispInit(void)
 					gdriverRegister(&dclist[i]->d, 0);
 			}
 		}
+
 	#elif GDISP_TOTAL_DISPLAYS > 1
 		{
 			unsigned	i;

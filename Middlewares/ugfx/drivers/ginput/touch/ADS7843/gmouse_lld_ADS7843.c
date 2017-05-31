@@ -15,8 +15,10 @@
 // Get the hardware interface
 #include "gmouse_lld_ADS7843_board.h"
 
-#define CMD_X				0xD1
-#define CMD_Y				0x91
+//#define CMD_X				0xD1
+//#define CMD_Y				0x91
+#define CMD_X				0x90
+#define CMD_Y				0xD0
 #define CMD_ENABLE_IRQ		0x80
 
 static bool_t MouseXYZ(GMouse* m, GMouseReading* pdr)
@@ -28,9 +30,10 @@ static bool_t MouseXYZ(GMouse* m, GMouseReading* pdr)
 	pdr->z = 0;
 	
 	if (getpin_pressed(m)) {
+
+	
 		pdr->z = 1;						// Set to Z_MAX as we are pressed
 
-		aquire_bus(m);
 		
 		read_value(m, CMD_X);				// Dummy read - disable PenIRQ
 		pdr->x = read_value(m, CMD_X);		// Read X-Value
@@ -40,12 +43,13 @@ static bool_t MouseXYZ(GMouse* m, GMouseReading* pdr)
 
 		read_value(m, CMD_ENABLE_IRQ);		// Enable IRQ
 
-		release_bus(m);
 	}
 	return TRUE;
 }
 
-const GMouseVMT const GMOUSE_DRIVER_VMT[1] = {{
+const GMouseVMT const GMOUSE_DRIVER_VMT[1] = 
+{
+  {
 	{
 		GDRIVER_TYPE_TOUCH,
 		GMOUSE_VFLG_TOUCH | GMOUSE_VFLG_CALIBRATE | GMOUSE_VFLG_CAL_TEST |
@@ -74,7 +78,81 @@ const GMouseVMT const GMOUSE_DRIVER_VMT[1] = {{
 	MouseXYZ,		// get
 	0,				// calsave
 	0				// calload
-}};
+  }
+};
+
+static void WR_CMD (uint16_t cmd)
+{
+
+  /* Send SPI3 data */
+	uint8_t in_data;
+   HAL_SPI_TransmitReceive(&hspi3,&cmd ,  &in_data,sizeof(uint16_t), 10);
+
+}
+static bool_t init_board(GMouse* m, unsigned driverinstance) {
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  if((&hspi3)->Instance==SPI3)
+  {
+	/* Peripheral clock enable */
+	__HAL_RCC_SPI3_CLK_ENABLE();
+	/* TP_CS */
+	GPIO_InitStruct.Pin = Tpad_CS_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
+
+	/* TP_IRQ */
+	GPIO_InitStruct.Pin =  Tpad_IRQ_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(Tpad_PORT, &GPIO_InitStruct);
+
+  }
+  Tpad_set_CS
+
+  /* Configure SPI -----------------------------------------------------------*/
+	//see spi.c
+
+}
+static inline bool_t getpin_pressed(GMouse* m)
+{
+    return !HAL_GPIO_ReadPin(Tpad_PORT, Tpad_IRQ_PIN);
+}
+
+static inline void aquire_bus(GMouse* m) {
+
+}
+
+static inline void release_bus(GMouse* m) {
+
+}
+
+static inline uint16_t read_value(GMouse* m, uint16_t port) {
+  uint16_t cur_X;
+  uint16_t tmpr;
+//don't remove delay or it will cause noise touch
+  Tpad_reset_CS
+  gfxSleepMilliseconds(1);
+  WR_CMD(port);
+  gfxSleepMilliseconds(1);
+
+  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmpr, sizeof(uint8_t), 10);
+
+  cur_X=tmpr>>8;
+  gfxSleepMilliseconds(1);
+  Tpad_set_CS
+  gfxSleepMilliseconds(1);
+  return cur_X;
+  
+}
+
+
+
+
+
 
 #endif /* GFX_USE_GINPUT && GINPUT_NEED_MOUSE */
 

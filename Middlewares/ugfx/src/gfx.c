@@ -102,6 +102,7 @@ void gfxInit(void)
 	#if GFX_USE_GFILE
 		_gfileInit();
 	#endif
+				//for(;;){}
 	#if GFX_USE_GDISP
 		_gdispInit();
 	#endif

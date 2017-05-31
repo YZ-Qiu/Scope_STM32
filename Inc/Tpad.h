@@ -68,7 +68,8 @@ FunctionalState setCalibrationMatrix(Coordinate * displayPtr,Coordinate * screen
 FunctionalState getDisplayPoint(Coordinate * displayPtr,Coordinate * screenPtr,Matrix * matrixPtr );
 
 	// controller specific functions - should not be used outside
-static void set_CS(void);
+static void set_CS();
+
 static void reset_CS(void);
 GPIO_PinState read_IRQ(void);
 static void WR_CMD (uint16_t cmd);

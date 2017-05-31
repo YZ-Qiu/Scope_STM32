@@ -263,7 +263,7 @@ void Tpad_Calibrate(void)
 
 }
 
-static void set_CS(void)
+static void set_CS()
 {
   HAL_GPIO_WritePin(Tpad_PORT, Tpad_CS_PIN,GPIO_PIN_SET);
 }
@@ -271,7 +271,7 @@ static void set_CS(void)
 static void reset_CS(void)
 {
   HAL_GPIO_WritePin(Tpad_PORT, Tpad_CS_PIN,GPIO_PIN_RESET);
-
+ 
 }
 
 GPIO_PinState read_IRQ(void)

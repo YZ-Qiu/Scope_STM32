@@ -480,7 +480,7 @@ static void MousePoll(void *param) {
         }
 
 		// Set up the calibration display
-		gdispGClear(m->display, uBlue);
+		gdispGClear(m->display, Black);
 		#if GDISP_NEED_TEXT
 			gdispGFillStringBox(m->display,
 								0, CALIBRATION_TITLE_Y, w, CALIBRATION_TITLE_HEIGHT,

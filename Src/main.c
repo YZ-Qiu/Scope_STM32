@@ -24,17 +24,15 @@ void MX_FREERTOS_Init(void);
 
 
 osThreadId UI_TaskHandle;
-
-
 /*
-osThreadId LED1_Handle;
-void LED1_blink_Task(void const * argument)
+osThreadId TouchTaskHandle;
+void Touch_Task(void const * argument)
 {
-  for(;;)
-  {
-    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
-    osDelay(500);
-  }
+    LCD_Initializtion();
+
+  Tpad_Init();
+  Tpad_Calibrate();
+  for(;;){}
 }
 */
 #define PI 3.14159265
@@ -50,9 +48,16 @@ int main(void)
   MX_RNG_Init();
   MX_SPI3_Init();
 //  LCD_Initializtion();
- 
+
+
+
   osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 2048);
   UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
+
+  /*
+    osThreadDef(t_Task,Touch_Task, osPriorityHigh, 1, 1024);
+  TouchTaskHandle = osThreadCreate(osThread(t_Task), NULL);
+*/
 //HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
   osKernelStart();
 
