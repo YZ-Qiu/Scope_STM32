@@ -32,6 +32,7 @@ static void DrawHeader(const char *title, bool_t btnNext, bool_t btnPrev, bool_t
 
 static int CheckButtons(GEventMouse *pem)
 {
+
   if (pem->y < bHeight && (pem->buttons & GMETA_MOUSE_UP)) {
     if (pem->x >= swidth-1*bWidth)
       return BTN_NEXT;
@@ -108,12 +109,19 @@ void UserInterface()
   geventAttachSource(&gl, gs, GLISTEN_MOUSEDOWNMOVES|GLISTEN_MOUSEMETA);
 
   // Get initial display settings for buttons
+  
   isFirstTime = TRUE;
   isCalibrated = (vmt->d.flags & GMOUSE_VFLG_CALIBRATE) ? FALSE : TRUE;
   calerr = 0;
+  
+  /*
+  isFirstTime = FALSE;
+  isCalibrated =  TRUE;
+  calerr = 0;
+  */
   //x,y,w,h
    //gdispFillArea(50,50,10,100,White);
- //  for(;;){}
+
   /*
    * Test: Device Type
    */
@@ -215,7 +223,7 @@ StepRawReading:
    */
 
 StepCalibrate:
-  DrawHeader("3. Calibration Jitter", isCalibrated, isCalibrated, isCalibrated);
+ DrawHeader("3. Calibration Jitter", isCalibrated, isCalibrated, isCalibrated);
   if ((vmt->d.flags & GMOUSE_VFLG_CALIBRATE)) {
     gwinPrintf(ghc, "You will be presented with a number of points to touch.\nPress them in turn.\n\n"
         "If the calibration repeatedly fails, increase the jitter for %s calibration and try again.\n\n", isFingerText);
@@ -270,7 +278,6 @@ StepCalibrate:
 
 StepMouseCoords:
   DrawHeader("4. Show Mouse Coordinates", TRUE, TRUE, TRUE);
-  //for(;;){}
   if (isTouch)
     gwinPrintf(ghc, "Press and hold on the surface.\n\n");
   else
@@ -278,7 +285,7 @@ StepMouseCoords:
   gwinPrintf(ghc, "Check the coordinates against where it should be on the screen.\n\n");
   gwinPrintf(ghc, "X should be 0 to %u\nY should be 0 to %u\n\n", swidth-1, sheight-1);
   gwinPrintf(ghc, "Press + to retry using extremes or - for normal calibration.\n");
-  gwinPrintf(ghc, "Press Next or Back to continue.\n");
+  gwinPrintf(ghc, "Press Next or Back to continue.%d,%d\n",swidth-1*bWidth,swidth-2*bWidth);
 
   // For this test normal mouse movement events
   geventAttachSource(&gl, gs, GLISTEN_MOUSEDOWNMOVES|GLISTEN_MOUSEMETA);
@@ -289,22 +296,25 @@ StepMouseCoords:
     gfxSleepMilliseconds(100);
     pem = (GEventMouse *)geventEventWait(&gl, TIME_INFINITE);
 
-    switch (CheckButtons(pem)) {
-    case BTN_NEXT:
-      break;
-    case BTN_PREV:
-      goto StepCalibrate;
-    case BTN_PLUS:
-      vmt->d.flags |= GMOUSE_VFLG_CAL_EXTREMES;
-      goto StepCalibrate;
-    case BTN_MINUS:
-      vmt->d.flags &= ~GMOUSE_VFLG_CAL_EXTREMES;
-      goto StepCalibrate;
-    default:
-      gwinPrintf(ghc, "%u, %u\n", pem->x, pem->y);
-      continue;
+    switch (CheckButtons(pem))
+    {
+      case BTN_NEXT:
+        break;
+      case BTN_PREV:
+      
+        goto StepCalibrate;
+      case BTN_PLUS:
+        vmt->d.flags |= GMOUSE_VFLG_CAL_EXTREMES;
+        goto StepCalibrate;
+      case BTN_MINUS:
+        vmt->d.flags &= ~GMOUSE_VFLG_CAL_EXTREMES;
+        goto StepCalibrate;
+      default:
+        gwinPrintf(ghc, "%u, %u\n", pem->x, pem->y);
+        continue;
     }
     break;
+
   }
 
   // Reset to just changed movements.
@@ -313,7 +323,7 @@ StepMouseCoords:
   /*
    * Test: Mouse movement jitter
    */
-
+               
 StepMovementJitter:
   DrawHeader("5. Movement Jitter", TRUE, TRUE, TRUE);
   if (isTouch)
@@ -334,6 +344,7 @@ StepMovementJitter:
     case BTN_NEXT:
       break;
     case BTN_PREV:
+
       goto StepMouseCoords;
     case BTN_PLUS:
       gwinPrintf(ghc, "Movement jitter (%s) = %u", isFingerText, ++pjit->move);
@@ -382,7 +393,8 @@ StepClickJitter:
       gwinPrintf(ghc, "Click jitter (%s) = %u", isFingerText, ++pjit->click);
       continue;
     case BTN_MINUS:
-      gwinPrintf(ghc, "Click jitter (%s) = %u", isFingerText, --pjit->click);
+      if(pjit!=0)
+        gwinPrintf(ghc, "Click jitter (%s) = %u", isFingerText, --pjit->click);
       continue;
     default:
       if ((pem->buttons & GMETA_MOUSE_CLICK)) {

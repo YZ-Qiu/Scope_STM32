@@ -59,19 +59,42 @@ void Tpad_Init(void)
 
 uint16_t Read_Reg(uint8_t addr)
 {
-  uint16_t cur_X;
-//don't remove delay or it will cause noise touch
+  uint8_t tData[3] = { addr, 0 , 0 };
+  uint8_t rData[3] = { 0 , 0 , 0 };
   reset_CS();
-  delay(1);
-  WR_CMD(addr);
-  delay(1);
-  cur_X=RD_AD();
-  delay(1);
+  HAL_SPI_TransmitReceive(&hspi3,tData ,  &rData, 3*sizeof(uint8_t), 10);
   set_CS();
-  delay(1);
+    if ( ( addr & 0x08 ) == 0 )
+    {
+        return ( rData[1] << 5 ) | ( rData[2] >> 3 );
+    }
+    return ( rData[1] << 4 ) | ( rData[2] >> 4 );
 
+  /*
+    uint8_t tData[3] = { port , 0 , 0 };
+    uint8_t rData[3] = { 0 , 0 , 0 };
 
-  return cur_X;
+#if SPI_USE_MUTUAL_EXCLUSION
+
+    spiAcquireBus( &( XPT2046_SPI_DRIVER ) );
+#endif
+
+    palClearPad( Tpad_PORT ,TP_CS_Pin);
+    spiExchange( &( hspi3) , 3 , tData , rData );
+    palSetPad(Tpad_PORT , TP_CS_Pin);
+
+#if SPI_USE_MUTUAL_EXCLUSION
+
+    spiReleaseBus( &( SPID1 ) );
+#endif
+
+    if ( ( port & 0x08 ) == 0 )
+    {
+        return ( rData[1] << 5 ) | ( rData[2] >> 3 );
+    }
+    return ( rData[1] << 4 ) | ( rData[2] >> 4 );
+  */
+
 }
 
 void Tpad_GetAdXY(int *x,int *y)
@@ -242,7 +265,7 @@ void Tpad_Calibrate(void)
 
 
    LCD_print(44,10,"Touch crosshair to calibrate");
-   delay(250);
+   delay(100);
    LCD_DrawCross(DisplaySample[i].x,DisplaySample[i].y, Red, RGB565CONVERT(184,158,131));
    do
    {
@@ -256,10 +279,30 @@ void Tpad_Calibrate(void)
 
   }
 
+
   setCalibrationMatrix( &DisplaySample[0],&ScreenSample[0],&matrix );
-  LCD_Clear(Black);
 
 
+  for(;;)
+  {
+      LCD_Clear(Black);
+   do
+   {
+     Ptr = Read_Tpad();
+   }
+   while( Ptr == (void*)0 );
+
+   ScreenSample[i].x= Ptr->x;
+   ScreenSample[i].y= Ptr->y;
+   char str[32];
+      sprintf(str ,"%d",Ptr->x);
+      LCD_print(44,10,str);
+      sprintf(str ,"%d",Ptr->y);
+      LCD_print(44,30,str);
+         delay(200);
+   //show sample value
+
+  }
 
 }
 
@@ -288,9 +331,9 @@ static void WR_CMD (uint16_t cmd)
 {
 
   /* Send SPI3 data */
-	uint8_t in_data;
-   HAL_SPI_TransmitReceive(&hspi3,&cmd ,  &in_data,sizeof(uint16_t), 10);
 
+  uint8_t in_data;
+   HAL_SPI_TransmitReceive(&hspi3,&cmd ,  &in_data,sizeof(uint16_t), 10);
 }
 static uint16_t RD_AD(void)
 {

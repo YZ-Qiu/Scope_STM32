@@ -1,0 +1,9 @@
+Middlewares/ugfx/drivers/gadc/AT91SAM7/gadc_lld.c:	acg.channelselects = pj->physdev;
+Middlewares/ugfx/drivers/gadc/AT91SAM7/gadc_lld.c:	adcStartConversionI(&ADCD1, &acg, pj->buffer, pj->todo);
+Middlewares/ugfx/drivers/gadc/AT91SAM7/gadc_lld.c:	acg.channelselects = pj->physdev;
+Middlewares/ugfx/drivers/gadc/AT91SAM7/gadc_lld.c:	adcStartConversionI(&ADCD1, &acg, pj->buffer, 1);
+Middlewares/ugfx/src/ginput/ginput_mouse.c:		if (pj->move > 0) {
+Middlewares/ugfx/src/ginput/ginput_mouse.c:			if (diff < (uint32_t)pj->move * (uint32_t)pj->move) {
+Middlewares/ugfx/src/ginput/ginput_mouse.c:		if (pj->click > 0 && (m->flags & GMOUSE_FLG_CLICK_TIMER)) {
+Middlewares/ugfx/src/ginput/ginput_mouse.c:			if (diff > (uint32_t)pj->click * (uint32_t)pj->click)
+Middlewares/ugfx/src/ginput/ginput_mouse.c:			if (err > (uint32_t)pj->calibrate * (uint32_t)pj->calibrate) {

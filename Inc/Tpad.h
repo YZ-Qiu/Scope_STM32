@@ -20,7 +20,12 @@ I'm not the owner of the whole code
 //#include "stm32f4xx_hal.h"
 
 #include "LCD.h"
-
+#define Tpad_PORT      GPIOB
+#define Tpad_MISO_PIN     TP_SO_Pin
+#define Tpad_MOSI_PIN     TP_SI_Pin
+#define Tpad_SCK_PIN      TP_SCK_Pin
+#define Tpad_CS_PIN       TP_CS_Pin
+#define Tpad_IRQ_PIN   TP_IRQ_Pin
 /* Private typedef -----------------------------------------------------------*/
 typedef	struct POINT
 {

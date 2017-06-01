@@ -15,10 +15,8 @@
 // Get the hardware interface
 #include "gmouse_lld_ADS7843_board.h"
 
-//#define CMD_X				0xD1
-//#define CMD_Y				0x91
-#define CMD_X				0x90
-#define CMD_Y				0xD0
+#define CMD_X				0x91
+#define CMD_Y				0xD1
 #define CMD_ENABLE_IRQ		0x80
 
 static bool_t MouseXYZ(GMouse* m, GMouseReading* pdr)
@@ -130,23 +128,27 @@ static inline void release_bus(GMouse* m) {
 
 }
 
-static inline uint16_t read_value(GMouse* m, uint16_t port) {
-  uint16_t cur_X;
-  uint16_t tmpr;
-//don't remove delay or it will cause noise touch
+static inline uint16_t read_value(GMouse* m, uint16_t addr) {
+/*
+    uint8_t tData[3] = { port , 0 , 0 };
+    uint8_t rData[3] = { 0 , 0 , 0 };
+ */
+    	
+  uint8_t tData[3] = { addr, 0 , 0 };
+  uint8_t rData[3] = { 0 , 0 , 0 };
+  //uint16_t map_data;
   Tpad_reset_CS
-  gfxSleepMilliseconds(1);
-  WR_CMD(port);
-  gfxSleepMilliseconds(1);
-
-  HAL_SPI_TransmitReceive(&hspi3,0x0000 ,  &tmpr, sizeof(uint8_t), 10);
-
-  cur_X=tmpr>>8;
-  gfxSleepMilliseconds(1);
+  HAL_SPI_TransmitReceive(&hspi3,tData ,  &rData, 3*sizeof(uint8_t), 10);
   Tpad_set_CS
-  gfxSleepMilliseconds(1);
-  return cur_X;
-  
+    if ( ( addr & 0x08 ) == 0 )
+    {
+    //	return  rData[2]>>3;
+        return (( rData[1] << 5 ) | ( rData[2] >> 3 ));
+    }
+	//	return rData[2]>>4;
+    return (( rData[1] << 4 ) | ( rData[2] >> 4 ));
+
+
 }
 
 

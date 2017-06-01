@@ -24,7 +24,7 @@ void MX_FREERTOS_Init(void);
 
 
 osThreadId UI_TaskHandle;
-/*
+
 osThreadId TouchTaskHandle;
 void Touch_Task(void const * argument)
 {
@@ -34,7 +34,7 @@ void Touch_Task(void const * argument)
   Tpad_Calibrate();
   for(;;){}
 }
-*/
+
 #define PI 3.14159265
 int main(void)
 {
