@@ -7,11 +7,22 @@
 
 #include <string.h>
 
+/*  screeen disp coordinate
+
+    (0,0)-----------(320,0)
+    |                   |
+    |                   |
+    (0,240)________(320,240)
+*/
+
+//White bar on the top of screen
 static void DrawHeader(const char *title, bool_t btnNext, bool_t btnPrev, bool_t btnPlusMinus)
 {
+  //Clipping will then make sure that no drawing occurs outside of this window
   #if GDISP_NEED_CLIP
     gdispSetClip(0, 0, swidth, sheight);
   #endif
+
   gdispFillStringBox(0, 0, swidth, bHeight, "Touch Calibration", font, uRed, White, justifyLeft);
   if (btnNext)
     gdispFillStringBox(swidth-1*bWidth, 0, bWidth  , bHeight, "Next", font, Black, Gray, justifyCenter);
@@ -48,16 +59,20 @@ void UserInterface()
 {
 
   GSourceHandle     gs;
-  GEventMouse       *pem;
+  GEventMouse       *pem;  //use for listen multi button
+
   bool_t          isFirstTime;
   bool_t          isCalibrated;
   bool_t          isTouch;
   bool_t          isFinger;
+  
   const char *      isFingerText;
   const char *      deviceText;
+  
   GMouse *        m;
   GMouseVMT *       vmt;
   GMouseJitter *      pjit;
+  
   uint32_t        calerr;
 
   gfxInit();    // Initialize the display
@@ -196,7 +211,7 @@ StepRawReading:
     //This commmand will clear calibration data
      // m->flags &= ~(GMOUSE_FLG_CALIBRATE|GMOUSE_FLG_CLIP);
   }
-  
+
 #ifndef GINPUT_TOUCH_USER_CALIBRATION_LOAD
   else
   {
