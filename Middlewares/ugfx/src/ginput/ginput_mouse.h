@@ -29,7 +29,6 @@
 /*===========================================================================*/
 /* Type definitions                                                          */
 /*===========================================================================*/
-
 /* This type definition is also used by touch */
 typedef struct GEventMouse_t {
 	GEventType		type;							// The type of this event (GEVENT_MOUSE or GEVENT_TOUCH)
@@ -80,6 +79,10 @@ typedef struct GEventMouse_t {
 #ifdef __cplusplus
 extern "C" {
 #endif
+	
+
+    bool_t LoadMouseCalibration(unsigned instance, void *data, size_t sz);
+
 
 	/**
 	 * @brief	Get the Source handler for a mouse using the instance number
@@ -150,34 +153,7 @@ extern "C" {
 	 * @note	An invalid instance will also return 0.
 	 */
 	uint32_t ginputCalibrateMouse(unsigned instance);
-	
-    /**
-     * @brief   Load a set of mouse calibration data
-     * @return  A pointer to the data or NULL on failure
-     *
-	 * @param[in] instance		The mouse input instance number
-	 * @param[in] data			Where the data should be placed
-	 * @param[in] sz    		The size in bytes of the data to retrieve.
-	 *
-     * @note    This routine is provided by the user application. It is only
-     *          called if GINPUT_TOUCH_USER_CALIBRATION_LOAD has been set to TRUE in the
-     *          users gfxconf.h file.
-     */
-    bool_t LoadMouseCalibration(unsigned instance, void *data, size_t sz);
 
-    /**
-     * @brief   Save a set of mouse calibration data
-     * @return  TRUE if the save operation was successful.
-     *
-	 * @param[in] instance		The mouse input instance number
-	 * @param[in] data          The data to save
-	 * @param[in] sz    		The size in bytes of the data to retrieve.
-	 *
-     * @note    This routine is provided by the user application. It is only
-     *          called if GINPUT_TOUCH_USER_CALIBRATION_SAVE has been set to TRUE in the
-     *          users gfxconf.h file.
-     */
-    bool_t SaveMouseCalibration(unsigned instance, const void *data, size_t sz);
 
 #ifdef __cplusplus
 }

@@ -61,7 +61,31 @@ static GTIMER_DECL(MouseTimer);
 		pt->y = (coord_t) (c->ay * pt->x + c->by * pt->y + c->cy);
 	}
 #endif
+//=======================================USER CODE START===================================
 
+float calibrationData[] = {
+	-0.08513,		// ax
+	0.00181,		// bx
+	326.18734,		// cx
+	0.00069,		// ay
+	0.06251,		// by
+	-15.62139 		// cy
+};
+ 
+bool_t LoadMouseCalibration(unsigned instance, void *data, size_t sz)
+{
+	(void)instance;
+  	if (sz != sizeof(calibrationData) || instance != 0) {
+		return FALSE;
+	}
+ 
+	memcpy(data, &calibrationData, sz);
+
+	return TRUE;
+}
+
+ 
+//=======================================USER CODE END===================================
 static void SendMouseEvent(GSourceListener	*psl, GMouse *m, GMouseReading *r) {
 	GEventMouse		*pe;
 
@@ -440,6 +464,7 @@ static void MousePoll(void *param) {
 		m->caldata.cy = (c0 * ((float)points[1].x * (float)points[2].y - (float)points[2].x * (float)points[1].y)
 							- c1 * ((float)points[0].x * (float)points[2].y - (float)points[2].x * (float)points[0].y)
 							+ c2 * ((float)points[0].x * (float)points[1].y - (float)points[1].x * (float)points[0].y)) / dx;
+
 	}
 
 	static uint32_t CalibrateMouse(GMouse *m) {
@@ -603,8 +628,9 @@ static void MousePoll(void *param) {
 		if (!err) {
 			m->flags |= GMOUSE_FLG_CALIBRATE;
 
+
 			#if GINPUT_TOUCH_USER_CALIBRATION_SAVE
-				SaveMouseCalibration(gdriverGetDriverInstanceNumber((GDriver *)m), &m->caldata, sizeof(GMouseCalibration));
+				SaveMouseCalibration(&m->caldata);
 			#endif
 			if (gmvmt(m)->calsave)
 				gmvmt(m)->calsave(m, &m->caldata, sizeof(GMouseCalibration));
@@ -705,7 +731,11 @@ void _gmousePostInitDriver(GDriver *g) {
 			#endif
         }
     #endif
-
+    #if GINPUT_TOUCH_USER_CALIBRATION_LOAD
+        if (LoadMouseCalibration(gdriverGetDriverInstanceNumber((GDriver *)m), &m->caldata, sizeof(GMouseCalibration)))
+            m->flags |= GMOUSE_FLG_CALIBRATE;
+        else
+    #endif
     // Get the first reading
     GetMouseReading(m);
 

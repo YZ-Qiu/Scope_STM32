@@ -7,8 +7,6 @@
 
 #include <string.h>
 
-
-
 static void DrawHeader(const char *title, bool_t btnNext, bool_t btnPrev, bool_t btnPlusMinus)
 {
   #if GDISP_NEED_CLIP
@@ -182,19 +180,38 @@ StepDeviceType:
    */
 
 StepRawReading:
-  DrawHeader("2. Raw Mouse Output", FALSE, FALSE, FALSE);
-  if (isTouch)
-    gwinPrintf(ghc, "Press and hold on the surface.\n\n");
+  if(!isCalibrated)
+  {
+    DrawHeader("2. Raw Mouse Output", FALSE, FALSE, FALSE);
+    if (isTouch)
+      gwinPrintf(ghc, "Press and hold on the surface.\n\n");
+    else
+      gwinPrintf(ghc, "Press and hold the mouse button.\n\n");
+    gwinPrintf(ghc, "The raw values coming from your mouse driver will display.\n\n");
+    gwinPrintf(ghc, "Make sure the x and y values change as you move.\n\n");
+
+    gwinPrintf(ghc, "Release your %s to move on to the next test.\n", deviceText);
+
+    // Make sure we are in uncalibrated mode
+    //This commmand will clear calibration data
+     // m->flags &= ~(GMOUSE_FLG_CALIBRATE|GMOUSE_FLG_CLIP);
+  }
+  
+#ifndef GINPUT_TOUCH_USER_CALIBRATION_LOAD
   else
-    gwinPrintf(ghc, "Press and hold the mouse button.\n\n");
-  gwinPrintf(ghc, "The raw values coming from your mouse driver will display.\n\n");
-  gwinPrintf(ghc, "Make sure the x and y values change as you move.\n\n");
-
-  gwinPrintf(ghc, "Release your %s to move on to the next test.\n", deviceText);
-
-  // Make sure we are in uncalibrated mode
-  m->flags &= ~(GMOUSE_FLG_CALIBRATE|GMOUSE_FLG_CLIP);
-
+  {
+    DrawHeader("2.Your Calibrate data \n", TRUE, TRUE, FALSE);
+    gwinPrintf(ghc, "ax=%0.5f\n",m->caldata.ax); 
+    gwinPrintf(ghc, "bx=%0.5f\n",m->caldata.bx);
+    gwinPrintf(ghc, "cx=%0.5f\n",m->caldata.cx); 
+    gwinPrintf(ghc, "ay=%0.5f\n",m->caldata.ay);
+    gwinPrintf(ghc, "by=%0.5f\n",m->caldata.by); 
+    gwinPrintf(ghc, "cy=%0.5f\n",m->caldata.cy);
+    gfxSleepMilliseconds(1000);
+    pem->buttons  = NULL;
+    for(;;){}
+  }
+#endif
   // For this test turn on ALL mouse movement events
   geventAttachSource(&gl, gs, GLISTEN_MOUSEDOWNMOVES|GLISTEN_MOUSEUPMOVES|GLISTEN_MOUSEMETA|GLISTEN_MOUSENOFILTER);
 
@@ -223,6 +240,7 @@ StepRawReading:
    */
 
 StepCalibrate:
+#ifndef GINPUT_TOUCH_USER_CALIBRATION_LOAD
  DrawHeader("3. Calibration Jitter", isCalibrated, isCalibrated, isCalibrated);
   if ((vmt->d.flags & GMOUSE_VFLG_CALIBRATE)) {
     gwinPrintf(ghc, "You will be presented with a number of points to touch.\nPress them in turn.\n\n"
@@ -271,13 +289,14 @@ StepCalibrate:
       goto StepCalibrate;
     isCalibrated = TRUE;
   }
-
+#endif //GINPUT_TOUCH_USER_CALIBRATION_LOAD
   /*
    * Test: Mouse coords
    */
 
 StepMouseCoords:
   DrawHeader("4. Show Mouse Coordinates", TRUE, TRUE, TRUE);
+
   if (isTouch)
     gwinPrintf(ghc, "Press and hold on the surface.\n\n");
   else

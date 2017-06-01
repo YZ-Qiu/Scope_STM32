@@ -160,7 +160,7 @@
 //        #define GWIN_CONSOLE_HISTORY_ATCREATE        FALSE
 //    #define GWIN_CONSOLE_ESCSEQ                      FALSE
 //    #define GWIN_CONSOLE_USE_BASESTREAM              FALSE
-//    #define GWIN_CONSOLE_USE_FLOAT                   FALSE
+    #define GWIN_CONSOLE_USE_FLOAT                   TRUE
 //#define GWIN_NEED_GRAPH                              FALSE
 //#define GWIN_NEED_GL3D                               FALSE
 
@@ -229,15 +229,15 @@
 #define GFX_USE_GINPUT                               TRUE
 
 #define GINPUT_NEED_MOUSE                            TRUE
-    #define GINPUT_TOUCH_STARTRAW                    TRUE
+    #define GINPUT_TOUCH_STARTRAW                    TRUE  //only true when calibration
 //    #define GINPUT_TOUCH_NOTOUCH                     FALSE
-//    #define GINPUT_TOUCH_NOCALIBRATE                 TRUE
+//    #define GINPUT_TOUCH_NOCALIBRATE                 TRUE  // wont use calibrate algorithm
 //    #define GINPUT_TOUCH_NOCALIBRATE_GUI             TRUE
 //    #define GINPUT_MOUSE_POLL_PERIOD                 25
 //    #define GINPUT_MOUSE_CLICK_TIME                  300
 //    #define GINPUT_TOUCH_CXTCLICK_TIME               700
-//    #define GINPUT_TOUCH_USER_CALIBRATION_LOAD       TRUE
-//    #define GINPUT_TOUCH_USER_CALIBRATION_SAVE       FALSE
+    #define GINPUT_TOUCH_USER_CALIBRATION_LOAD       TRUE
+//    #define GINPUT_TOUCH_USER_CALIBRATION_SAVE       TRUE
     #define GMOUSE_DRIVER_LIST                       GMOUSEVMT_STMPE811
 //#define GINPUT_NEED_KEYBOARD                         FALSE
 //    #define GINPUT_KEYBOARD_POLL_PERIOD              200
