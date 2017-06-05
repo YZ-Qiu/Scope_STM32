@@ -66,12 +66,12 @@ static GTIMER_DECL(MouseTimer);
 	}
 #endif
 float calibrationData[] = {
-	-0.08513,		// ax
-	0.00181,		// bx
-	326.18734,		// cx
-	0.00069,		// ay
-	0.06251,		// by
-	-15.62139 		// cy
+	0.00051,		// ax
+	0.06561,		// bx
+	-18.82692,		// cx
+	0.08889,		// ay
+	0.00043,		// by
+	-17.61439 		// cy
 };
 bool_t LoadMouseCalibration(unsigned instance, void *data, size_t sz)
 {
