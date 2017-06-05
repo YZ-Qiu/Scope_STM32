@@ -21,6 +21,7 @@
 
 #ifndef _GFXCONF_H
 #define _GFXCONF_H
+#define M_PI 3.14159265
 
 #include "LCD.h"
 ///////////////////////////////////////////////////////////////////////////
@@ -57,19 +58,19 @@
 
 #define GDISP_NEED_CIRCLE                            TRUE
 //#define GDISP_NEED_ELLIPSE                           FALSE
-//#define GDISP_NEED_ARC                               FALSE
+#define GDISP_NEED_ARC                               TRUE  //for genUI
 //#define GDISP_NEED_ARCSECTORS                        FALSE
 #define GDISP_NEED_CONVEX_POLYGON                    TRUE
 //#define GDISP_NEED_SCROLL                            FALSE
 //#define GDISP_NEED_PIXELREAD                         FALSE
-//#define GDISP_NEED_CONTROL                           FALSE
+#define GDISP_NEED_CONTROL                           FALSE
 //#define GDISP_NEED_QUERY                             FALSE
 #define GDISP_NEED_MULTITHREAD                       TRUE
 //#define GDISP_NEED_STREAMING                         FALSE
 #define GDISP_NEED_TEXT                              TRUE
     #define GDISP_NEED_ANTIALIAS                     FALSE
     #define GDISP_NEED_UTF8                          TRUE
-//    #define GDISP_NEED_TEXT_KERNING                  FALSE
+    #define GDISP_NEED_TEXT_KERNING                  FALSE
     #define GDISP_INCLUDE_FONT_UI1                   TRUE
     #define GDISP_INCLUDE_FONT_UI2                   TRUE		// The smallest preferred font.
 //    #define GDISP_INCLUDE_FONT_LARGENUMBERS          FALSE
@@ -89,7 +90,7 @@
 //    #define GDISP_INCLUDE_FONT_DEJAVUSANS24_AA       FALSE
 //    #define GDISP_INCLUDE_FONT_DEJAVUSANS32_AA       FALSE
 //    #define GDISP_INCLUDE_FONT_DEJAVUSANSBOLD12_AA   FALSE
-//    #define GDISP_INCLUDE_USER_FONTS                 FALSE
+    #define GDISP_INCLUDE_USER_FONTS                 FALSE
 
 #define GDISP_NEED_IMAGE                             TRUE
     #define GDISP_NEED_IMAGE_NATIVE                  TRUE
@@ -149,8 +150,8 @@
 #define GFX_USE_GWIN                                 TRUE
 
 #define GWIN_NEED_WINDOWMANAGER                      TRUE
-//    #define GWIN_REDRAW_IMMEDIATE                    TRUE
-//    #define GWIN_REDRAW_SINGLEOP                     FALSE
+    #define GWIN_REDRAW_IMMEDIATE                    TRUE
+    #define GWIN_REDRAW_SINGLEOP                     TRUE
 //    #define GWIN_NEED_FLASHING                       FALSE
 //        #define GWIN_FLASHING_PERIOD                 250
 
@@ -168,7 +169,7 @@
     #define GWIN_NEED_LABEL                          TRUE
         #define GWIN_LABEL_ATTRIBUTE                 TRUE
     #define GWIN_NEED_BUTTON                         TRUE
-//        #define GWIN_BUTTON_LAZY_RELEASE             FALSE
+        #define GWIN_BUTTON_LAZY_RELEASE             FALSE
     #define GWIN_NEED_SLIDER                         TRUE
 //        #define GWIN_SLIDER_NOSNAP                   FALSE
 //        #define GWIN_SLIDER_DEAD_BAND                5
@@ -178,19 +179,19 @@
 //        #define GWIN_NEED_IMAGE_ANIMATION            FALSE
     #define GWIN_NEED_RADIO                          TRUE
     #define GWIN_NEED_LIST                           TRUE
-//        #define GWIN_NEED_LIST_IMAGES                FALSE
+        #define GWIN_NEED_LIST_IMAGES                FALSE
     #define GWIN_NEED_PROGRESSBAR                    TRUE
 //        #define GWIN_PROGRESSBAR_AUTO                FALSE
-//    #define GWIN_NEED_KEYBOARD                       FALSE
+    #define GWIN_NEED_KEYBOARD                       FALSE
 //        #define GWIN_KEYBOARD_DEFAULT_LAYOUT         VirtualKeyboard_English1
 //        #define GWIN_NEED_KEYBOARD_ENGLISH1          TRUE
-//    #define GWIN_FLAT_STYLING                        FALSE
+    #define GWIN_FLAT_STYLING                        FALSE
 //    #define GWIN_WIDGET_TAGS                         FALSE
 
-//#define GWIN_NEED_CONTAINERS                         FALSE
-//    #define GWIN_NEED_CONTAINER                      FALSE
-//    #define GWIN_NEED_FRAME                          FALSE
-//    #define GWIN_NEED_TABSET                         FALSE
+#define GWIN_NEED_CONTAINERS                            TRUE
+    #define GWIN_NEED_CONTAINER                      TRUE
+    #define GWIN_NEED_FRAME                          FALSE
+    #define GWIN_NEED_TABSET                         FALSE
 //        #define GWIN_TABSET_TABHEIGHT                18
 
 
@@ -199,7 +200,7 @@
 ///////////////////////////////////////////////////////////////////////////
 #define GFX_USE_GEVENT                               TRUE
 
-//#define GEVENT_ASSERT_NO_RESOURCE                    FALSE
+#define GEVENT_ASSERT_NO_RESOURCE                    FALSE
 #define GEVENT_MAXIMUM_SIZE                          32
 #define GEVENT_MAX_SOURCE_LISTENERS                  32
 
@@ -251,7 +252,7 @@
 ///////////////////////////////////////////////////////////////////////////
 // GFILE                                                                 //
 ///////////////////////////////////////////////////////////////////////////
-#define GFX_USE_GFILE                                TRUE
+#define GFX_USE_GFILE                                FALSE
 
 //#define GFILE_NEED_PRINTG                            FALSE
 //#define GFILE_NEED_SCANG                             FALSE
@@ -265,12 +266,12 @@
 #define GFILE_NEED_ROMFS                             FALSE
 #define GFILE_NEED_RAMFS                             FALSE
 #define GFILE_NEED_FATFS                             TRUE
-//#define GFILE_NEED_NATIVEFS                          TRUE
+#define GFILE_NEED_NATIVEFS                          TRUE
 //#define GFILE_NEED_CHBIOSFS                          FALSE
 
 //#define GFILE_ALLOW_FLOATS                           FALSE
 //#define GFILE_ALLOW_DEVICESPECIFIC                   FALSE
-#define GFILE_MAX_GFILES                             10
+#define GFILE_MAX_GFILES                             1
 
 ///////////////////////////////////////////////////////////////////////////
 // GADC                                                                  //

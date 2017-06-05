@@ -465,7 +465,7 @@ extern "C" {
 	 *
 	 * @api
 	 */
-	void gwinuRedraw(GHandle gh);
+	void gwinRedraw(GHandle gh);
 
 	#if GWIN_NEED_WINDOWMANAGER || defined (__DOXYGEN__)
 		/**

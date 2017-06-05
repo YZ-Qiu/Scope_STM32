@@ -145,7 +145,7 @@
 		_gwinUpdate(gh);
 	}
 
-	void gwinuRedraw(GHandle gh) {
+	void gwinRedraw(GHandle gh) {
 		_gwinUpdate(gh);
 	}
 #endif
