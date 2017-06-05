@@ -11,6 +11,8 @@
  * @defgroup Window Window
  * @ingroup Windows
  *
+ * @brief		The basic window implementation (base class).
+ *
  * @details		GWIN provides a basic window manager which allows it to easily
  *				create and destroy different windows at runtime. Each window
  *				will have it's own properties such as colors as well as
@@ -23,7 +25,7 @@
 #ifndef _GWIN_H
 #define _GWIN_H
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GWIN || defined(__DOXYGEN__)
 
@@ -38,19 +40,22 @@ typedef struct GWindowObject *GHandle;
 typedef struct GWindowObject {
 	#if GWIN_NEED_WINDOWMANAGER
 		// This MUST be the first member of the structure
-		gfxQueueASyncItem	wmq;				// @< The next window (for the window manager)
+		gfxQueueASyncItem	wmq;				/**< The next window (for the window manager) */
 	#endif
-	const struct gwinVMT	*vmt;				// @< The VMT for this GWIN
-	GDisplay *				display;			// @< The display this window is on.
-	coord_t					x, y;				// @< Screen relative position
-	coord_t					width, height;		// @< Dimensions of this window
-	color_t					color, bgcolor;		// @< The current drawing colors
-	uint32_t				flags;				// @< Window flags (the meaning is private to the GWIN class)
+	const struct gwinVMT*	vmt;				/**< The VMT for this GWIN */
+	GDisplay *				display;			/**< The display this window is on */
+	coord_t					x;					/**< The position relative to the screen */
+	coord_t					y;					/**< The position relative to the screen */
+	coord_t					width;				/**< The width of this window */
+	coord_t					height;				/**< The height of this window */
+	color_t					color;				/**< The current foreground drawing color */
+	color_t					bgcolor;			/**< The current background drawing color */
+	uint32_t				flags;				/**< Window flags (the meaning is private to the GWIN class) */
 	#if GDISP_NEED_TEXT
-		font_t				font;				// @< The current font
+		font_t				font;				/**< The current font */
 	#endif
 	#if GWIN_NEED_CONTAINERS
-		GHandle				parent;				// @< The parent window
+		GHandle				parent;				/**< The parent window */
 	#endif
 } GWindowObject, * GHandle;
 /** @} */
@@ -68,11 +73,13 @@ typedef struct GWindowObject {
  * @{
  */
 typedef struct GWindowInit {
-	coord_t			x, y;							// @< The initial position relative to its parent
-	coord_t			width, height;					// @< The initial dimension
-	bool_t			show;							// @< Should the window be visible initially
+	coord_t			x;								/**< The initial position relative to its parent */
+	coord_t			y;								/**< The initial position relative to its parent */
+	coord_t			width;							/**< The width */
+	coord_t			height;							/**< The height */
+	bool_t			show;							/**< Should the window be visible initially */
 	#if GWIN_NEED_CONTAINERS
-		GHandle		parent;							// @< The parent - must be a container or NULL
+		GHandle		parent;							/**< The parent - must be a container or NULL */
 	#endif
 } GWindowInit;
 /** @} */
@@ -455,7 +462,7 @@ extern "C" {
 	void gwinResize(GHandle gh, coord_t width, coord_t height);
 
 	/**
-	 * @brief	uRedraw a window
+	 * @brief	Redraw a window
 	 *
 	 * @param[in] gh				The window
 	 *
@@ -469,7 +476,7 @@ extern "C" {
 
 	#if GWIN_NEED_WINDOWMANAGER || defined (__DOXYGEN__)
 		/**
-		 * @brief	uRedraw a window
+		 * @brief	Redraw a display
 		 *
 		 * @param[in] g				The display to redraw. Passing NULL will redraw all displays.
 		 * @param[in] preserve		Should the redraw try to preserve existing screen data for those
@@ -482,7 +489,7 @@ extern "C" {
 		 *
 		 * @api
 		 */
-		void gwinuRedrawDisplay(GDisplay *g, bool_t preserve);
+		void gwinRedrawDisplay(GDisplay *g, bool_t preserve);
 
 		/**
 		 * @brief	Minimize, Maximize or Restore a window
@@ -711,6 +718,24 @@ extern "C" {
 		void gwinFillCircle(GHandle gh, coord_t x, coord_t y, coord_t radius);
 	#endif
 
+	#if GDISP_NEED_DUALCIRCLE || defined(__DOXYGEN__)
+		/**
+		 * @brief   Draw two filled circles with the same centre in the window.
+		 * @note	Uses the current foreground color to draw the inner circle
+		 * @note	Uses the current background color to draw the outer circle
+		 * @note	May leave GDISP clipping to this window's dimensions
+		 * @pre		GDISP_NEED_DUALCIRCLE must be TRUE in your gfxconf.h
+		 *
+		 * @param[in] gh		The window handle
+		 * @param[in] x,y		The center of the circle
+		 * @param[in] radius1	The radius of the larger circle
+		 * @param[in] radius2	The radius of the smaller circle
+		 *
+		 * @api
+		 */
+		void gwinFillDualCircle(GHandle gh, coord_t x, coord_t y, coord_t radius1, coord_t radius2);
+	#endif
+
 	#if GDISP_NEED_ELLIPSE || defined(__DOXYGEN__)
 		/**
 		 * @brief   Draw an ellipse.
@@ -769,6 +794,22 @@ extern "C" {
 		 * @api
 		 */
 		void gwinFillArc(GHandle gh, coord_t x, coord_t y, coord_t radius, coord_t startangle, coord_t endangle);
+
+		/*
+		 * @brief	Draw a thick arc in the window.
+		 * @note	Uses the current foreground color to draw the thick arc
+		 * @note	May leave GDISP clipping to this window's dimensions
+		 *
+		 * @param[in] gh		The window handle
+		 * @param[in] x,y		The center point
+		 * @param[in] startradius	The inner radius of the thick arc
+		 * @param[in] endradius		The outer radius of the thick arc
+		 * @param[in] startangle	The start angle (0 to 360)
+		 * @param[in] endangle		The end angle (0 to 360)
+		 *
+		 * @api
+		 */
+		void gwinDrawThickArc(GHandle gh, coord_t x, coord_t y, coord_t startradius, coord_t endradius, coord_t startangle, coord_t endangle);
 	#endif
 
 	#if GDISP_NEED_ARCSECTORS || defined(__DOXYGEN__)

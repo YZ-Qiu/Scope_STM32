@@ -5,9 +5,11 @@
  *              http://ugfx.org/license.html
  */
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GDISP && GDISP_NEED_IMAGE
+
+#include "gdisp_image_support.h"
 
 #if GDISP_NEED_IMAGE_NATIVE
 	extern gdispImageError gdispImageOpen_NATIVE(gdispImage *img);
@@ -31,6 +33,9 @@
 	extern gdispImageError gdispImageCache_BMP(gdispImage *img);
 	extern gdispImageError gdispGImageDraw_BMP(GDisplay *g, gdispImage *img, coord_t x, coord_t y, coord_t cx, coord_t cy, coord_t sx, coord_t sy);
 	extern delaytime_t gdispImageNext_BMP(gdispImage *img);
+	extern uint16_t gdispImageGetPaletteSize_BMP(gdispImage *img);
+	extern color_t gdispImageGetPalette_BMP(gdispImage *img, uint16_t index);
+	extern bool_t gdispImageAdjustPalette_BMP(gdispImage *img, uint16_t index, color_t newColor);
 #endif
 
 #if GDISP_NEED_IMAGE_JPG
@@ -51,77 +56,52 @@
 
 /* The structure defining the routines for image drawing */
 typedef struct gdispImageHandlers {
-	gdispImageError	(*open)(gdispImage *img);			/* The open function */
-	void			(*close)(gdispImage *img);			/* The close function */
-	gdispImageError	(*cache)(gdispImage *img);			/* The cache function */
+	gdispImageError	(*open)(gdispImage *img);					/* The open function */
+	void			(*close)(gdispImage *img);					/* The close function */
+	gdispImageError	(*cache)(gdispImage *img);					/* The cache function */
 	gdispImageError	(*draw)(GDisplay *g,
 							gdispImage *img,
 							coord_t x, coord_t y,
 							coord_t cx, coord_t cy,
-							coord_t sx, coord_t sy);	/* The draw function */
-	delaytime_t		(*next)(gdispImage *img);			/* The next frame function */
+							coord_t sx, coord_t sy);			/* The draw function */
+	delaytime_t		(*next)(gdispImage *img);					/* The next frame function */
+	uint16_t		(*getPaletteSize)(gdispImage *img);			/* Retrieve the size of the palette (number of entries) */
+	color_t			(*getPalette)(gdispImage *img, uint16_t index);							/* Retrieve a specific color value of the palette */
+	bool_t			(*adjustPalette)(gdispImage *img, uint16_t index, color_t newColor);	/* Replace a color value in the palette */
 } gdispImageHandlers;
 
 static gdispImageHandlers ImageHandlers[] = {
 	#if GDISP_NEED_IMAGE_NATIVE
 		{	gdispImageOpen_NATIVE,	gdispImageClose_NATIVE,
 			gdispImageCache_NATIVE,	gdispGImageDraw_NATIVE,	gdispImageNext_NATIVE,
+			0,						0,						0
 		},
 	#endif
 	#if GDISP_NEED_IMAGE_GIF
 		{	gdispImageOpen_GIF,		gdispImageClose_GIF,
 			gdispImageCache_GIF,	gdispGImageDraw_GIF,	gdispImageNext_GIF,
+			0,						0,						0
 		},
 	#endif
 	#if GDISP_NEED_IMAGE_BMP
-		{	gdispImageOpen_BMP,		gdispImageClose_BMP,
-			gdispImageCache_BMP,	gdispGImageDraw_BMP,	gdispImageNext_BMP,
+		{	gdispImageOpen_BMP,				gdispImageClose_BMP,
+			gdispImageCache_BMP,			gdispGImageDraw_BMP,		gdispImageNext_BMP,
+			gdispImageGetPaletteSize_BMP,	gdispImageGetPalette_BMP,	gdispImageAdjustPalette_BMP
 		},
 	#endif
 	#if GDISP_NEED_IMAGE_JPG
 		{	gdispImageOpen_JPG,		gdispImageClose_JPG,
 			gdispImageCache_JPG,	gdispGImageDraw_JPG,	gdispImageNext_JPG,
+			0,						0,						0
 		},
 	#endif
 	#if GDISP_NEED_IMAGE_PNG
 		{	gdispImageOpen_PNG,		gdispImageClose_PNG,
 			gdispImageCache_PNG,	gdispGImageDraw_PNG,	gdispImageNext_PNG,
+			0,						0,						0
 		},
 	#endif
 };
-
-gdispImageError
-		DEPRECATED("Use gdispImageOpenGFile() instead")
-		gdispImageOpen(gdispImage *img) {
-	return gdispImageOpenGFile(img, img->f);
-}
-
-#if GFILE_NEED_MEMFS
-	bool_t
-			DEPRECATED("Use gdispImageOpenMemory() instead")
-			gdispImageSetMemoryReader(gdispImage *img, const void *memimage) {
-		img->f = gfileOpenMemory((void *)memimage, "rb");
-		return img->f != 0;
-	}
-#endif
-
-#if defined(WIN32) || GFX_USE_OS_WIN32 || GFX_USE_OS_LINUX || GFX_USE_OS_OSX
-	bool_t
-			DEPRECATED("Use gdispImageOpenFile() instead")
-			gdispImageSetFileReader(gdispImage *img, const char *filename) {
-		img->f = gfileOpen(filename, "rb");
-		return img->f != 0;
-	}
-#endif
-
-#if GFILE_NEED_CHIBIOSFS && GFX_USE_OS_CHIBIOS
-	bool_t
-			DEPRECATED("Use gdispImageOpenBaseFileStream() instead")
-			gdispImageSetBaseFileStreamReader(gdispImage *img, void *BaseFileStreamPtr) {
-		img->f = gfileOpenBaseFileStream(BaseFileStreamPtr, "rb");
-		return img->f != 0;
-	}
-#endif
 
 void gdispImageInit(gdispImage *img) {
 	img->type = GDISP_IMAGE_TYPE_UNKNOWN;
@@ -185,6 +165,16 @@ gdispImageError gdispImageCache(gdispImage *img) {
 
 gdispImageError gdispGImageDraw(GDisplay *g, gdispImage *img, coord_t x, coord_t y, coord_t cx, coord_t cy, coord_t sx, coord_t sy) {
 	if (!img->fns) return GDISP_IMAGE_ERR_BADFORMAT;
+
+	// Check on window
+	if (cx <= 0 || cy <= 0) return GDISP_IMAGE_ERR_OK;
+	if (sx < 0) sx = 0;
+	if (sy < 0) sy = 0;
+	if (sx >= img->width || sy >= img->height) return GDISP_IMAGE_ERR_OK;
+	if (sx + cx > img->width)  cx = img->width - sx;
+	if (sy + cy > img->height) cy = img->height - sy;
+
+	// Draw
 	return img->fns->draw(g, img, x, y, cx, cy, sx, sy);
 }
 
@@ -192,6 +182,25 @@ delaytime_t gdispImageNext(gdispImage *img) {
 	if (!img->fns) return GDISP_IMAGE_ERR_BADFORMAT;
 	return img->fns->next(img);
 }
+
+uint16_t gdispImageGetPaletteSize(gdispImage *img) {
+	if (!img->fns) return 0;
+	if (!img->fns->getPaletteSize) return 0;
+	return img->fns->getPaletteSize(img);
+}
+
+color_t gdispImageGetPalette(gdispImage *img, uint16_t index) {
+	if (!img->fns) return 0;
+	if (!img->fns->getPalette) return 0;
+	return img->fns->getPalette(img, index);
+}
+
+bool_t gdispImageAdjustPalette(gdispImage *img, uint16_t index, color_t newColor) {
+	if (!img->fns) return FALSE;
+	if (!img->fns->adjustPalette) return FALSE;
+	return img->fns->adjustPalette(img, index, newColor);
+}
+
 
 // Helper Routines
 void *gdispImageAlloc(gdispImage *img, size_t sz) {
@@ -221,5 +230,50 @@ void gdispImageFree(gdispImage *img, void *ptr, size_t sz) {
 		gfxFree(ptr);
 	#endif
 }
+
+#if GFX_CPU_ENDIAN != GFX_CPU_ENDIAN_LITTLE && GFX_CPU_ENDIAN != GFX_CPU_ENDIAN_BIG \
+		&& GFX_CPU_ENDIAN != GFX_CPU_ENDIAN_WBDWL && GFX_CPU_ENDIAN != GFX_CPU_ENDIAN_WLDWB
+
+	union wbyteorder_u {
+		uint8_t		b[2];
+		uint32_t	w;
+	};
+	union dwbyteorder_u {
+		uint8_t		b[4];
+		uint32_t	l;
+	};
+
+	uint16_t gdispImageH16toLE16(uint16_t w) {
+		union wbyteorder_u	we;
+
+		we.w = w;
+		return	 (((uint16_t)we.b[0]))|(((uint16_t)we.b[1]) << 8);
+	}
+	uint16_t gdispImageH16toBE16(uint16_t w) {
+		union wbyteorder_u	we;
+
+		we.w = w;
+		return	 (((uint16_t)we.b[0]) << 8)|(((uint16_t)we.b[1]));
+	}
+
+	uint32_t gdispImageH32toLE32(uint32_t dw) {
+		union dwbyteorder_u	we;
+
+		we.l = dw;
+		return	 (((uint32_t)we.b[0]))
+				|(((uint32_t)we.b[1]) << 8)
+				|(((uint32_t)we.b[2]) << 16)
+				|(((uint32_t)we.b[3]) << 24);
+	}
+	uint32_t gdispImageH32toBE32(uint32_t dw) {
+		union dwbyteorder_u	we;
+
+		we.l = dw;
+		return	 (((uint32_t)we.b[0]) << 24)
+				|(((uint32_t)we.b[1]) << 16)
+				|(((uint32_t)we.b[2]) << 8)
+				|(((uint32_t)we.b[3]));
+	}
+#endif
 
 #endif /* GFX_USE_GDISP && GDISP_NEED_IMAGE */

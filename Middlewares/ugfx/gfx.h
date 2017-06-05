@@ -18,7 +18,7 @@
 
 #ifndef _GFX_H
 #define _GFX_H
-
+#include "./src/gfx_compilers.h"
 /**
  * These two definitions below are required before anything else so that we can
  * turn module definitions off and on.

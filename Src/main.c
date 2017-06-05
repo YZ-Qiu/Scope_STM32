@@ -11,8 +11,6 @@
 #include "Tpad.h"
 #include "ff.h"
 
-#include "ff_gen_drv.h"
-#include "sd_diskio.h"
 
 
 #include "gfx.h"
@@ -48,7 +46,6 @@ int main(void)
   MX_RNG_Init();
   MX_SPI3_Init();
 //  LCD_Initializtion();
-
 
 
   osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 2048);

@@ -7,19 +7,19 @@
 
 /**
  * @file    src/gdisp/gdisp_colors.h
- * @brief   GDISP color definitions header file.
- *
- * @details	GDISP color definitions and macros
  *
  * @defgroup Colors Colors
  * @ingroup GDISP
+ *
+ * @brief   Sub-Module for color handling.
+ *
  * @{
  */
 
 #ifndef _GDISP_COLORS_H
 #define _GDISP_COLORS_H
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GDISP || defined(__DOXYGEN__)
 
@@ -84,11 +84,11 @@ typedef uint16_t	colorformat;
 #define Black			HTML2COLOR(0x000000)
 #define Gray			HTML2COLOR(0x808080)
 #define Grey			Gray
-#define uBlue			HTML2COLOR(0x0000FF)
-#define uRed				HTML2COLOR(0xFF0000)
+#define Blue			HTML2COLOR(0x0000FF)
+#define Red				HTML2COLOR(0xFF0000)
 #define Fuchsia			HTML2COLOR(0xFF00FF)
 #define Magenta			Fuchsia
-#define uGreen			HTML2COLOR(0x008000)
+#define Green			HTML2COLOR(0x008000)
 #define Yellow			HTML2COLOR(0xFFFF00)
 #define Aqua			HTML2COLOR(0x00FFFF)
 #define Cyan			Aqua
@@ -101,7 +101,7 @@ typedef uint16_t	colorformat;
 #define Teal			HTML2COLOR(0x008080)
 #define Orange			HTML2COLOR(0xFFA500)
 #define Pink			HTML2COLOR(0xFFC0CB)
-#define SkyuBlue			HTML2COLOR(0x87CEEB)
+#define SkyBlue			HTML2COLOR(0x87CEEB)
 /** @} */
 
 #if defined(__DOXYGEN__)

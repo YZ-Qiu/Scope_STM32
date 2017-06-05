@@ -10,7 +10,7 @@
  * @brief   GWIN sub-system button code
  */
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GWIN && GWIN_NEED_GL3D
 
@@ -20,18 +20,18 @@
 
 #include "gwin_class.h"
 
-#include "3rdparty/tinygl-0.4-ugfx/src/zgl.h"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/zgl.h"
 
 // Forward definitions
 static void gl3dDestroy(GWindowObject *gh);
-static void gl3duRedraw(GWindowObject *gh);
+static void gl3dRedraw(GWindowObject *gh);
 static int gl3dResizeGLViewport(GLContext *c, int *xsize_ptr, int *ysize_ptr);
 
 static const gwinVMT gl3dVMT = {
 		"GL3D",					// The classname
 		sizeof(GGL3DObject),	// The object size
 		gl3dDestroy,			// The destroy routine
-		gl3duRedraw,				// The redraw routine
+		gl3dRedraw,				// The redraw routine
 		0,						// The after-clear routine
 };
 
@@ -82,7 +82,7 @@ static void gl3dDestroy(GWindowObject *gh) {
     haveGLwindow = FALSE;
 }
 
-static void gl3duRedraw(GWindowObject *gh) {
+static void gl3dRedraw(GWindowObject *gh) {
 	ZBuffer *	zb;
 
 	zb = ((GGL3DObject *)gh)->glcxt->zb;
@@ -147,25 +147,25 @@ void *gl_zalloc(int size) {
  * TinyGL wrapper code
  */
 
-#include "3rdparty/tinygl-0.4-ugfx/src/api.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/list.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/vertex.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/init.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/matrix.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/texture.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/misc.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/clear.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/light.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/clip.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/select.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/get.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/zbuffer.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/zline.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/zdither.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/ztriangle.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/zmath.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/image_util.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/arrays.c"
-#include "3rdparty/tinygl-0.4-ugfx/src/specbuf.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/api.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/list.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/vertex.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/init.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/matrix.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/texture.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/misc.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/clear.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/light.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/clip.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/select.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/get.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/zbuffer.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/zline.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/zdither.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/ztriangle.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/zmath.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/image_util.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/arrays.c"
+#include "../../3rdparty/tinygl-0.4-ugfx/src/specbuf.c"
 
 #endif /* GFX_USE_GWIN && GWIN_NEED_GL3D */

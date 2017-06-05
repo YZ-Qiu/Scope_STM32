@@ -1,5 +1,5 @@
 /**
- * uBlueThunder Linker Script for the raspberry Pi!
+ * BlueThunder Linker Script for the raspberry Pi!
  *
  *
  *

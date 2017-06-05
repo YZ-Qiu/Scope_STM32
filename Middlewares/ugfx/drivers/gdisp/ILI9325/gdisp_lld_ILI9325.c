@@ -311,7 +311,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 				gfxSleepMilliseconds(200); /* Dis-charge capacitor power voltage */
 				write_reg(g, 0x10, 0x0002); /* SAP, BT[3:0], APE, AP, DSTB, SLP */
 				release_bus(g);
-				gdisp_lld_backlight(g, 0);
+				gdispGSetBacklight(g, 0);
 				break;
 
 			case powerDeepSleep:
@@ -324,7 +324,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 				gfxSleepMilliseconds(200); /* Dis-charge capacitor power voltage */
 				write_reg(g, 0x10, 0x0004); /* SAP, BT[3:0], APE, AP, DSTB, SLP */
 				release_bus(g);
-				gdisp_lld_backlight(g, 0);
+				gdispGSetBacklight(g, 0);
 				break;
 
 			default:

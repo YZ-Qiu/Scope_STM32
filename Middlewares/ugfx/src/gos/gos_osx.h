@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 /* Already defined int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, size_t */
 
@@ -27,6 +28,7 @@ typedef pthread_mutex_t		gfxMutex;
 
 #define DECLARE_THREAD_FUNCTION(fnName, param)	threadreturn_t fnName(void *param)
 #define DECLARE_THREAD_STACK(name, sz)			uint8_t name[0];
+#define THREAD_RETURN(retval)					return retval
 
 #define gfxExit()						exit(0)
 #define gfxAlloc(sz)					malloc(sz)

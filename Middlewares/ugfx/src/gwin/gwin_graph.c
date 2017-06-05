@@ -10,7 +10,7 @@
  * @brief   GWIN sub-system button code
  */
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GWIN && GWIN_NEED_GRAPH
 
@@ -172,6 +172,7 @@ GHandle gwinGGraphCreate(GDisplay *g, GGraphObject *gg, const GWindowInit *pInit
 	gg->lastx = gg->lasty = 0;
 	gwinGraphSetStyle((GHandle)gg, &GGraphDefaultStyle);
 	gwinSetVisible((GHandle)gg, pInit->show);
+	_gwinFlushRedraws(REDRAW_WAIT);
 	return (GHandle)gg;
 }
 
@@ -283,7 +284,7 @@ void gwinGraphDrawPoint(GHandle gh, coord_t x, coord_t y) {
 		// Draw the line
 		lineto(gg, gg->lastx, gg->lasty, x, y, &gg->style.line);
 
-		// uRedraw the previous point because the line may have overwritten it
+		// Redraw the previous point because the line may have overwritten it
 		pointto(gg, gg->lastx, gg->lasty, &gg->style.point);
 
 	} else
@@ -314,7 +315,7 @@ void gwinGraphDrawPoints(GHandle gh, const point *points, unsigned count) {
 			// Draw the line
 			lineto(gg, gg->lastx, gg->lasty, p->x, p->y, &gg->style.line);
 
-			// uRedraw the previous point because the line may have overwritten it
+			// Redraw the previous point because the line may have overwritten it
 			if (i == 0)
 				pointto(gg, gg->lastx, gg->lasty, &gg->style.point);
 

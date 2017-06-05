@@ -14,7 +14,7 @@
 
 #define GDISP_DRIVER_VMT			GDISPVMT_uGFXnet
 #include "gdisp_lld_config.h"
-#include "src/gdisp/gdisp_driver.h"
+#include "../../../src/gdisp/gdisp_driver.h"
 #include "uGFXnetProtocol.h"
 
 #ifndef GDISP_SCREEN_WIDTH
@@ -39,7 +39,7 @@
 #if GINPUT_NEED_MOUSE
 	// Include mouse support code
 	#define GMOUSE_DRIVER_VMT		GMOUSEVMT_uGFXnet
-	#include "src/ginput/ginput_driver_mouse.h"
+	#include "../../../src/ginput/ginput_driver_mouse.h"
 
 	// Forward definitions
 	static bool_t NMouseInit(GMouse *m, unsigned driverinstance);
@@ -236,7 +236,7 @@ static bool_t newconnection(SOCKET_TYPE clientfd) {
 	// Send a redraw all
 	#if GFX_USE_GWIN && GWIN_NEED_WINDOWMANAGER
 		gdispGClear(g, gwinGetDefaultBgColor());
-		gwinuRedrawDisplay(g, FALSE);
+		gwinRedrawDisplay(g, FALSE);
 	#endif
 
 	return TRUE;

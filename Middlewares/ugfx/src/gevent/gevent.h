@@ -22,7 +22,7 @@
 #ifndef _GEVENT_H
 #define _GEVENT_H
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GEVENT || defined(__DOXYGEN__)
 
@@ -69,8 +69,8 @@ typedef struct GSource_t			GSource, *GSourceHandle;
 typedef struct GSourceListener_t {
 	GListener		*pListener;			// The listener
 	GSource			*pSource;			// The source
-	unsigned		listenflags;		// The flags the listener passed when the source was assigned to it.
-	unsigned		srcflags;			// For the source's exclusive use. Initialised as 0 for a new listener source assignment.
+	uint32_t		listenflags;		// The flags the listener passed when the source was assigned to it.
+	uint32_t		srcflags;			// For the source's exclusive use. Initialised as 0 for a new listener source assignment.
 	} GSourceListener;
 
 /*===========================================================================*/
@@ -92,17 +92,17 @@ extern "C" {
 	
 	How to create events (act as a Source)...
 	1. Provide a funtion to the application that returns a GSourceHandle (which can be a pointer to whatever the source wants)
-	2. Whenever a possible event occurs call geventGetSourceListener to get a pointer to a GSourceListener.
+	2. Whenever a possible event occurs call geventGetSourceListener() to get a pointer to a GSourceListener.
 			This will return NULL when there are no more listeners.
 			For each listener	- check the flags to see if an event should be sent.
-								- use geventGetEvent() to get the event buffer supplied by the listener
-									and then call geventSendEvent to send the event.
-								- Note: geventGetEvent() may return FALSE to indicate the listener is currently not listening and
+								- use geventGetEventBuffer() to get the event buffer supplied by the listener
+									and then call geventSendEvent() to send the event.
+								- Note: geventGetEventBuffer() may return FALSE to indicate the listener is currently not listening and
 									therefore no event should be sent. This situation enables the source to (optionally) flag
 									to the listener on its next wait that there have been missed events.
 								- Note: The GSourceListener pointer (and the GEvent buffer) are only valid between
-									the geventGetSourceListener call and either the geventSendEvent call or the next
-									geventGetSourceListener call.
+									the geventGetSourceListener() call and either the geventSendEvent call or the next
+									geventGetSourceListener() call.
 								- Note: All listeners must be processed for this event before anything else is processed.
 */
 
@@ -130,7 +130,7 @@ void geventListenerInit(GListener *pl);
  *
  * @return TRUE if succeeded, FALSE otherwise
  */
-bool_t geventAttachSource(GListener *pl, GSourceHandle gsh, unsigned flags);
+bool_t geventAttachSource(GListener *pl, GSourceHandle gsh, uint32_t flags);
 
 /**
  * @brief	Detach a source from a listener
@@ -146,7 +146,6 @@ void geventDetachSource(GListener *pl, GSourceHandle gsh);
  * @brief	Wait for an event on a listener from an assigned source.
  * @details	The type of the event should be checked (pevent->type) and then pevent should
  *			be typecast to the actual event type if it needs to be processed.
- * 			timeout specifies the time to wait in system ticks.
  *			TIME_INFINITE means no timeout - wait forever for an event.
  *			TIME_IMMEDIATE means return immediately
  * @note	The returned GEvent is released when this routine is called again
@@ -154,9 +153,11 @@ void geventDetachSource(GListener *pl, GSourceHandle gsh);
  * 			allows the GEvent object to be reused earlier which can reduce missed events. The GEvent
  * 			object MUST NOT be used after this function is called (and is blocked waiting for the next
  * 			event) or after geventEventComplete() is called.
+ *			The one listener object should not be waited on using more than one thread simultanously
+ *			because of the implicit geventEventComplete() that occurs when this function is called.
  *
  * @param[in] pl		The listener
- * @param[in] timeout	The timeout
+ * @param[in] timeout	The timeout in milliseconds
  *
  * @return	NULL on timeout
  */
@@ -211,18 +212,18 @@ GSourceListener *geventGetSourceListener(GSourceHandle gsh, GSourceListener *las
  * @brief	Get the event buffer from the GSourceListener.
  * @details	A NULL return allows the source to record (perhaps in glr->scrflags) that the listener
  *			has missed events. This can then be notified as part of the next event for the listener.
- *			The buffer can only be accessed untill the next call to geventGetSourceListener
- *			or geventSendEvent
+ *			The buffer can only be accessed untill the next call to @p geventGetSourceListener()
+ *			or @p geventSendEvent()
  *
  * @param[in] psl	The source listener
  *
- * @return	NULL if the listener is not currently listening.
+ * @return	NULL if the event buffer for this listener is currently in use.
  */
 GEvent *geventGetEventBuffer(GSourceListener *psl);
 
 /** 
  * @brief	Called by a source to indicate the listener's event buffer has been filled.
- * @details	After calling this function the source must not reference in fields in the GSourceListener or the event buffer.
+ * @details	After calling this function the source must not reference in fields in the @p GSourceListener or the event buffer.
  *
  * @param[in] psl	The source listener
  */

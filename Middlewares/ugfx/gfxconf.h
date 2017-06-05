@@ -41,7 +41,7 @@
 //    #define INTERRUPTS_ON()                          optional_code
 
 // Options that (should where relevant) apply to all operating systems
-    #define GFX_NO_OS_INIT                           TRUE
+    #define GFX_OS_NO_INIT                           TRUE
 //    #define GFX_OS_EXTRA_INIT_FUNCTION               myOSInitRoutine
 //    #define GFX_OS_EXTRA_DEINIT_FUNCTION             myOSDeInitRoutine
 
@@ -63,7 +63,7 @@
 #define GDISP_NEED_CONVEX_POLYGON                    TRUE
 //#define GDISP_NEED_SCROLL                            FALSE
 //#define GDISP_NEED_PIXELREAD                         FALSE
-#define GDISP_NEED_CONTROL                           FALSE
+#define GDISP_NEED_CONTROL                           TRUE
 //#define GDISP_NEED_QUERY                             FALSE
 #define GDISP_NEED_MULTITHREAD                       TRUE
 //#define GDISP_NEED_STREAMING                         FALSE

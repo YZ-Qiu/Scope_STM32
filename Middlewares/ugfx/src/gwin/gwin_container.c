@@ -10,7 +10,7 @@
  * @brief   GWIN sub-system container code
  */
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GWIN && GWIN_NEED_CONTAINERS
 
@@ -92,7 +92,7 @@ coord_t gwinGetInnerHeight(GHandle gh) {
 
 #define BORDER_WIDTH		2
 
-static coord_t BorderSize(GHandle gh)	{ return (gh->flags & GWIN_CONTAINER_BORDER) ? BORDER_WIDTH : 0; }
+static coord_t ContainerBorderSize(GHandle gh)	{ return (gh->flags & GWIN_CONTAINER_BORDER) ? BORDER_WIDTH : 0; }
 
 // The container VMT table
 static const gcontainerVMT containerVMT = {
@@ -101,13 +101,18 @@ static const gcontainerVMT containerVMT = {
 			"Container",				// The classname
 			sizeof(GContainerObject),	// The object size
 			_gcontainerDestroy,			// The destroy routine
-			_gcontaineruRedraw,			// The redraw routine
+			_gcontainerRedraw,			// The redraw routine
 			0,							// The after-clear routine
 		},
 		gwinContainerDraw_Std,			// The default drawing routine
 		#if GINPUT_NEED_MOUSE
 			{
 				0, 0, 0,				// No mouse
+			},
+		#endif
+		#if GINPUT_NEED_KEYBOARD || GWIN_NEED_KEYBOARD
+			{
+				0						// Process keyboard events
 			},
 		#endif
 		#if GINPUT_NEED_TOGGLE
@@ -121,10 +126,10 @@ static const gcontainerVMT containerVMT = {
 			},
 		#endif
 	},
-	BorderSize,							// The size of the left border (mandatory)
-	BorderSize,							// The size of the top border (mandatory)
-	BorderSize,							// The size of the right border (mandatory)
-	BorderSize,							// The size of the bottom border (mandatory)
+	ContainerBorderSize,				// The size of the left border (mandatory)
+	ContainerBorderSize,				// The size of the top border (mandatory)
+	ContainerBorderSize,				// The size of the right border (mandatory)
+	ContainerBorderSize,				// The size of the bottom border (mandatory)
 	0,									// A child has been added (optional)
 	0,									// A child has been deleted (optional)
 };

@@ -12,7 +12,7 @@
  *
  * @brief	Module which provides software based timers for user-space applications
  *
- * @details	The reason why ChibiOS/GFX has it's own timer abstraction is because
+ * @details	The reason why uGFX has it's own timer abstraction is because
  *			virtual timers provided by ChibiOS/RT are interrupt context only.
  *			While great for what they are designed for, they make coding of the input
  *			drivers much more complex.
@@ -29,7 +29,7 @@
 #ifndef _GTIMER_H
 #define _GTIMER_H
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GTIMER || defined(__DOXYGEN__)
 

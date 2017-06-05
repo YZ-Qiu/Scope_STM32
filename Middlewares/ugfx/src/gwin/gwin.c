@@ -6,11 +6,11 @@
  */
 
 /**
- * @file	src/gwin/gwin_gwin.c
+ * @file	src/gwin/gwin.c
  * @brief	GWIN sub-system code
  */
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GWIN
 
@@ -36,6 +36,18 @@ static color_t	defaultBgColor = Black;
 	static font_t	defaultFont;
 #endif
 
+/* These init functions are defined by each module but not published */
+extern void _gwmInit(void);
+extern void _gwmDeinit(void);
+#if GWIN_NEED_WIDGET
+	extern void _gwidgetInit(void);
+	extern void _gwidgetDeinit(void);
+#endif
+#if GWIN_NEED_CONTAINERS
+	extern void _gcontainerInit(void);
+	extern void _gcontainerDeinit(void);
+#endif
+
 /*-----------------------------------------------
  * Helper Routines
  *-----------------------------------------------*/
@@ -46,33 +58,24 @@ static color_t	defaultBgColor = Black;
 
 void _gwinInit(void)
 {
-	extern void _gwmInit(void);
-
 	_gwmInit();
-	#if GWIN_NEED_WIDGET
-		extern void _gwidgetInit(void);
 
+	#if GWIN_NEED_WIDGET
 		_gwidgetInit();
 	#endif
-	#if GWIN_NEED_CONTAINERS
-		extern void _gcontainerInit(void);
 
+	#if GWIN_NEED_CONTAINERS
 		_gcontainerInit();
 	#endif
 }
 
 void _gwinDeinit(void)
 {
-	extern void _gwmDeinit(void);
-
 	#if GWIN_NEED_CONTAINERS
-		extern void _gcontainerDeinit(void);
-
 		_gcontainerDeinit();
 	#endif
-	#if GWIN_NEED_WIDGET
-		extern void _gwidgetDeinit(void);
 
+	#if GWIN_NEED_WIDGET
 		_gwidgetDeinit();
 	#endif
 
@@ -113,7 +116,7 @@ GHandle _gwindowCreate(GDisplay *g, GWindowObject *pgw, const GWindowInit *pInit
 }
 
 // Internal routine for use by GWIN components only
-void _gwinDestroy(GHandle gh, GuRedrawMethod how) {
+void _gwinDestroy(GHandle gh, GRedrawMethod how) {
 	if (!gh)
 		return;
 
@@ -121,7 +124,7 @@ void _gwinDestroy(GHandle gh, GuRedrawMethod how) {
 	gwinSetVisible(gh, FALSE);
 
 	// Make sure it is flushed first - must be REDRAW_WAIT or REDRAW_INSESSION
-	_gwinFlushuRedraws(how);
+	_gwinFlushRedraws(how);
 
 	#if GWIN_NEED_CONTAINERS
 		// Notify the parent it is about to be deleted
@@ -193,6 +196,7 @@ GHandle gwinGWindowCreate(GDisplay *g, GWindowObject *pgw, const GWindowInit *pI
 		return 0;
 
 	gwinSetVisible(pgw, pInit->show);
+	_gwinFlushRedraws(REDRAW_WAIT);
 
 	return pgw;
 }
@@ -277,6 +281,14 @@ void gwinBlitArea(GHandle gh, coord_t x, coord_t y, coord_t cx, coord_t cy, coor
 	}
 #endif
 
+#if GDISP_NEED_DUALCIRCLE
+	void gwinFillDualCircle(GHandle gh, coord_t x, coord_t y, coord_t radius1, coord_t radius2) {
+		if (!_gwinDrawStart(gh)) return;
+		gdispGFillDualCircle(gh->display, gh->x+x, gh->y+y, radius1, gh->bgcolor, radius2, gh->color);
+		_gwinDrawEnd(gh);
+	}
+#endif
+
 #if GDISP_NEED_ELLIPSE
 	void gwinDrawEllipse(GHandle gh, coord_t x, coord_t y, coord_t a, coord_t b) {
 		if (!_gwinDrawStart(gh)) return;
@@ -301,6 +313,12 @@ void gwinBlitArea(GHandle gh, coord_t x, coord_t y, coord_t cx, coord_t cy, coor
 	void gwinFillArc(GHandle gh, coord_t x, coord_t y, coord_t radius, coord_t startangle, coord_t endangle) {
 		if (!_gwinDrawStart(gh)) return;
 		gdispGFillArc(gh->display, gh->x+x, gh->y+y, radius, startangle, endangle, gh->color);
+		_gwinDrawEnd(gh);
+	}
+
+	void gwinDrawThickArc(GHandle gh, coord_t x, coord_t y, coord_t startradius, coord_t endradius, coord_t startangle, coord_t endangle) {
+		if (!_gwinDrawStart(gh)) return;
+		gdispGDrawThickArc(gh->display, gh->x+x, gh->y+y, startradius, endradius, startangle, endangle, gh->color);
 		_gwinDrawEnd(gh);
 	}
 #endif

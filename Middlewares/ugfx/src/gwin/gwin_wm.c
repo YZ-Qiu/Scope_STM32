@@ -10,7 +10,7 @@
  * @brief   GWIN sub-system window manager code
  */
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GWIN && !GWIN_NEED_WINDOWMANAGER
 	/**
@@ -41,7 +41,7 @@
 		return TRUE;
 	}
 
-	void _gwinFlushuRedraws(GuRedrawMethod how) {
+	void _gwinFlushRedraws(GRedrawMethod how) {
 		(void) how;
 
 		// We are always flushed
@@ -64,9 +64,9 @@
 
 	void _gwinUpdate(GHandle gh) {
 		if ((gh->flags & GWIN_FLG_SYSVISIBLE)) {
-			if (gh->vmt->uRedraw) {
+			if (gh->vmt->Redraw) {
 				getLock(gh);
-				gh->vmt->uRedraw(gh);
+				gh->vmt->Redraw(gh);
 				exitLock(gh);
 			} else if ((gh->flags & GWIN_FLG_BGREDRAW)) {
 				getLock(gh);
@@ -162,17 +162,16 @@
 extern const GWindowManager	GNullWindowManager;
 GWindowManager *			_GWINwm;
 bool_t						_gwinFlashState;
-
 static gfxSem				gwinsem;
 static gfxQueueASync		_GWINList;
 #if GWIN_NEED_FLASHING
 	static GTimer			FlashTimer;
 #endif
 #if !GWIN_REDRAW_IMMEDIATE
-	static GTimer			uRedrawTimer;
-	static void				uRedrawTimerFn(void *param);
+	static GTimer			RedrawTimer;
+	static void				RedrawTimerFn(void *param);
 #endif
-static volatile uint8_t		uRedrawPending;
+static volatile uint8_t		RedrawPending;
 	#define DOREDRAW_INVISIBLES		0x01
 	#define DOREDRAW_VISIBLES		0x02
 	#define DOREDRAW_FLASHRUNNING	0x04
@@ -190,8 +189,8 @@ void _gwmInit(void)
 		gtimerInit(&FlashTimer);
 	#endif
 	#if !GWIN_REDRAW_IMMEDIATE
-		gtimerInit(&uRedrawTimer);
-		gtimerStart(&uRedrawTimer, uRedrawTimerFn, 0, TRUE, TIME_INFINITE);
+		gtimerInit(&RedrawTimer);
+		gtimerStart(&RedrawTimer, RedrawTimerFn, 0, TRUE, TIME_INFINITE);
 	#endif
 	_GWINwm = (GWindowManager *)&GNullWindowManager;
 	_GWINwm->vmt->Init();
@@ -206,28 +205,28 @@ void _gwmDeinit(void)
 
 	_GWINwm->vmt->DeInit();
 	#if !GWIN_REDRAW_IMMEDIATE
-		gtimerDeinit(&uRedrawTimer);
+		gtimerDeinit(&RedrawTimer);
 	#endif
 	gfxQueueASyncDeinit(&_GWINList);
 	gfxSemDestroy(&gwinsem);
 }
 
 #if GWIN_REDRAW_IMMEDIATE
-	#define TriggeruRedraw(void) _gwinFlushuRedraws(REDRAW_NOWAIT);
+	#define TriggerRedraw(void) _gwinFlushRedraws(REDRAW_NOWAIT);
 #else
-	#define TriggeruRedraw()		gtimerJab(&uRedrawTimer);
+	#define TriggerRedraw()		gtimerJab(&RedrawTimer);
 
-	static void uRedrawTimerFn(void *param) {
+	static void RedrawTimerFn(void *param) {
 		(void)		param;
-		_gwinFlushuRedraws(REDRAW_NOWAIT);
+		_gwinFlushRedraws(REDRAW_NOWAIT);
 	}
 #endif
 
-void _gwinFlushuRedraws(GuRedrawMethod how) {
+void _gwinFlushRedraws(GRedrawMethod how) {
 	GHandle		gh;
 
 	// Do we really need to do anything?
-	if (!uRedrawPending)
+	if (!RedrawPending)
 		return;
 
 	// Obtain the drawing lock
@@ -238,8 +237,8 @@ void _gwinFlushuRedraws(GuRedrawMethod how) {
 		return;
 
 	// Do loss of visibility first
-	while ((uRedrawPending & DOREDRAW_INVISIBLES)) {
-		uRedrawPending &= ~DOREDRAW_INVISIBLES;				// Catch new requests
+	while ((RedrawPending & DOREDRAW_INVISIBLES)) {
+		RedrawPending &= ~DOREDRAW_INVISIBLES;				// Catch new requests
 
 		for(gh = gwinGetNextWindow(0); gh; gh = gwinGetNextWindow(gh)) {
 			if ((gh->flags & (GWIN_FLG_NEEDREDRAW|GWIN_FLG_SYSVISIBLE)) != GWIN_FLG_NEEDREDRAW)
@@ -248,17 +247,17 @@ void _gwinFlushuRedraws(GuRedrawMethod how) {
 			// Do the redraw
 			#if GDISP_NEED_CLIP
 				gdispGSetClip(gh->display, gh->x, gh->y, gh->width, gh->height);
-				_GWINwm->vmt->uRedraw(gh);
+				_GWINwm->vmt->Redraw(gh);
 				gdispGUnsetClip(gh->display);
 			#else
-				_GWINwm->vmt->uRedraw(gh);
+				_GWINwm->vmt->Redraw(gh);
 			#endif
 
 			// Postpone further redraws
 			#if !GWIN_REDRAW_IMMEDIATE && !GWIN_REDRAW_SINGLEOP
 				if (how == REDRAW_NOWAIT) {
-					uRedrawPending |= DOREDRAW_INVISIBLES;
-					TriggeruRedraw();
+					RedrawPending |= DOREDRAW_INVISIBLES;
+					TriggerRedraw();
 					goto releaselock;
 				}
 			#endif
@@ -266,8 +265,8 @@ void _gwinFlushuRedraws(GuRedrawMethod how) {
 	}
 
 	// Do the visible windows next
-	while ((uRedrawPending & DOREDRAW_VISIBLES)) {
-		uRedrawPending &= ~DOREDRAW_VISIBLES;				// Catch new requests
+	while ((RedrawPending & DOREDRAW_VISIBLES)) {
+		RedrawPending &= ~DOREDRAW_VISIBLES;				// Catch new requests
 
 		for(gh = gwinGetNextWindow(0); gh; gh = gwinGetNextWindow(gh)) {
 			if ((gh->flags & (GWIN_FLG_NEEDREDRAW|GWIN_FLG_SYSVISIBLE)) != (GWIN_FLG_NEEDREDRAW|GWIN_FLG_SYSVISIBLE))
@@ -276,10 +275,10 @@ void _gwinFlushuRedraws(GuRedrawMethod how) {
 			// Do the redraw
 			#if GDISP_NEED_CLIP
 				gdispGSetClip(gh->display, gh->x, gh->y, gh->width, gh->height);
-				_GWINwm->vmt->uRedraw(gh);
+				_GWINwm->vmt->Redraw(gh);
 				gdispGUnsetClip(gh->display);
 			#else
-				_GWINwm->vmt->uRedraw(gh);
+				_GWINwm->vmt->Redraw(gh);
 			#endif
 
 			// Postpone further redraws (if there are any and the options are set right)
@@ -287,8 +286,8 @@ void _gwinFlushuRedraws(GuRedrawMethod how) {
 				if (how == REDRAW_NOWAIT) {
 					while((gh = gwinGetNextWindow(gh))) {
 						if ((gh->flags & (GWIN_FLG_NEEDREDRAW|GWIN_FLG_SYSVISIBLE)) == (GWIN_FLG_NEEDREDRAW|GWIN_FLG_SYSVISIBLE)) {
-							uRedrawPending |= DOREDRAW_VISIBLES;
-							TriggeruRedraw();
+							RedrawPending |= DOREDRAW_VISIBLES;
+							TriggerRedraw();
 							break;
 						}
 					}
@@ -314,10 +313,10 @@ void _gwinUpdate(GHandle gh) {
 
 	// Mark for redraw
 	gh->flags |= GWIN_FLG_NEEDREDRAW;
-	uRedrawPending |= DOREDRAW_VISIBLES;
+	RedrawPending |= DOREDRAW_VISIBLES;
 
 	// Asynchronous redraw
-	TriggeruRedraw();
+	TriggerRedraw();
 }
 
 #if GWIN_NEED_CONTAINERS
@@ -331,14 +330,23 @@ void _gwinUpdate(GHandle gh) {
 				if (!gh->parent || (gh->parent->flags & GWIN_FLG_SYSVISIBLE)) {
 					// We have been made visible
 					gh->flags |= (GWIN_FLG_SYSVISIBLE|GWIN_FLG_NEEDREDRAW|GWIN_FLG_BGREDRAW);
-					uRedrawPending |= DOREDRAW_VISIBLES;
+
+					// Do we want to grab the focus
+					_gwinFixFocus(gh);
+
+					RedrawPending |= DOREDRAW_VISIBLES;
 				}
 				break;
 			case (GWIN_FLG_VISIBLE|GWIN_FLG_SYSVISIBLE):
 				if (!gh->parent || (gh->parent->flags & GWIN_FLG_SYSVISIBLE))
 					break;
+
 				// Parent has been made invisible
 				gh->flags &= ~GWIN_FLG_SYSVISIBLE;
+
+				// No focus for us anymore
+				_gwinFixFocus(gh);
+
 				break;
 			case GWIN_FLG_SYSVISIBLE:
 				// We have been made invisible
@@ -346,7 +354,11 @@ void _gwinUpdate(GHandle gh) {
 				if (!gh->parent || (gh->parent->flags & GWIN_FLG_SYSVISIBLE)) {
 					// The parent is visible so we must clear the area we took
 					gh->flags |= (GWIN_FLG_NEEDREDRAW|GWIN_FLG_BGREDRAW);
-					uRedrawPending |= DOREDRAW_INVISIBLES;
+
+					// No focus for us anymore
+					_gwinFixFocus(gh);
+
+					RedrawPending |= DOREDRAW_INVISIBLES;
 				}
 				break;
 			}
@@ -383,7 +395,7 @@ void _gwinDrawEnd(GHandle gh) {
 	#endif
 
 	// Look for something to redraw
-	_gwinFlushuRedraws(REDRAW_INSESSION);
+	_gwinFlushRedraws(REDRAW_INSESSION);
 
 	// Release the lock
 	gfxSemSignal(&gwinsem);
@@ -422,17 +434,17 @@ void gwinSetWindowManager(struct GWindowManager *gwm) {
 	}
 }
 
-void gwinuRedraw(GHandle gh) {
+void gwinRedraw(GHandle gh) {
 	// Only redraw if visible
 	if (!(gh->flags & GWIN_FLG_SYSVISIBLE))
 		return;
 
 	// Mark for redraw
 	gh->flags |= GWIN_FLG_NEEDREDRAW;
-	uRedrawPending |= DOREDRAW_VISIBLES;
+	RedrawPending |= DOREDRAW_VISIBLES;
 
 	// Synchronous redraw
-	_gwinFlushuRedraws(REDRAW_WAIT);
+	_gwinFlushRedraws(REDRAW_WAIT);
 }
 
 #if GWIN_NEED_CONTAINERS
@@ -447,23 +459,31 @@ void gwinuRedraw(GHandle gh) {
 
 		// Fix everything up
 		_gwinRippleVisibility();
-		if (uRedrawPending)
-			TriggeruRedraw();
+		if (RedrawPending)
+			TriggerRedraw();
 	}
 #else
 	void gwinSetVisible(GHandle gh, bool_t visible) {
 		if (visible) {
 			if (!(gh->flags & GWIN_FLG_VISIBLE)) {
 				gh->flags |= (GWIN_FLG_VISIBLE|GWIN_FLG_SYSVISIBLE|GWIN_FLG_NEEDREDRAW|GWIN_FLG_BGREDRAW);
-				uRedrawPending |= DOREDRAW_VISIBLES;
-				TriggeruRedraw();
+
+				// Do we want to grab the focus
+				_gwinFixFocus(gh);
+
+				RedrawPending |= DOREDRAW_VISIBLES;
+				TriggerRedraw();
 			}
 		} else {
 			if ((gh->flags & GWIN_FLG_VISIBLE)) {
 				gh->flags &= ~(GWIN_FLG_VISIBLE|GWIN_FLG_SYSVISIBLE);
 				gh->flags |= (GWIN_FLG_NEEDREDRAW|GWIN_FLG_BGREDRAW);
-				uRedrawPending |= DOREDRAW_INVISIBLES;
-				TriggeruRedraw();
+
+				// No focus for us anymore
+				_gwinFixFocus(gh);
+
+				RedrawPending |= DOREDRAW_INVISIBLES;
+				TriggerRedraw();
 			}
 		}
 	}
@@ -482,6 +502,10 @@ void gwinuRedraw(GHandle gh) {
 				for(gh = gwinGetNextWindow(0); gh; gh = gwinGetNextWindow(gh)) {
 					if ((gh->flags & (GWIN_FLG_SYSENABLED|GWIN_FLG_ENABLED)) == GWIN_FLG_ENABLED && (!gh->parent || (gh->parent->flags & GWIN_FLG_SYSENABLED))) {
 						gh->flags |= GWIN_FLG_SYSENABLED;							// Fix it
+
+						// Do we want to grab the focus
+						_gwinFixFocus(gh);
+
 						_gwinUpdate(gh);
 					}
 				}
@@ -495,6 +519,10 @@ void gwinuRedraw(GHandle gh) {
 				for(gh = gwinGetNextWindow(0); gh; gh = gwinGetNextWindow(gh)) {
 					if ((gh->flags & GWIN_FLG_SYSENABLED) && (!(gh->flags & GWIN_FLG_ENABLED) || (gh->parent && !(gh->parent->flags & GWIN_FLG_SYSENABLED)))) {
 						gh->flags &= ~GWIN_FLG_SYSENABLED;			// Fix it
+
+						// No focus for us anymore
+						_gwinFixFocus(gh);
+
 						_gwinUpdate(gh);
 					}
 				}
@@ -506,11 +534,19 @@ void gwinuRedraw(GHandle gh) {
 		if (enabled) {
 			if (!(gh->flags & GWIN_FLG_ENABLED)) {
 				gh->flags |= (GWIN_FLG_ENABLED|GWIN_FLG_SYSENABLED);
+
+				// Do we want to grab the focus
+				_gwinFixFocus(gh);
+
 				_gwinUpdate(gh);
 			}
 		} else {
 			if ((gh->flags & GWIN_FLG_ENABLED)) {
 				gh->flags &= ~(GWIN_FLG_ENABLED|GWIN_FLG_SYSENABLED);
+
+				// No focus for us anymore
+				_gwinFixFocus(gh);
+
 				_gwinUpdate(gh);
 			}
 		}
@@ -541,7 +577,7 @@ GWindowMinMax gwinGetMinMax(GHandle gh) {
 	return GWIN_NORMAL;
 }
 
-void gwinuRedrawDisplay(GDisplay *g, bool_t preserve) {
+void gwinRedrawDisplay(GDisplay *g, bool_t preserve) {
 	GHandle	gh;
 
 	for(gh = gwinGetNextWindow(0); gh; gh = gwinGetNextWindow(gh)) {
@@ -577,21 +613,21 @@ GHandle gwinGetNextWindow(GHandle gh) {
 		(void)		param;
 
 		// Assume we will be stopping
-		uRedrawPending &= ~DOREDRAW_FLASHRUNNING;
+		RedrawPending &= ~DOREDRAW_FLASHRUNNING;
 
 		// Swap the flash state
 		_gwinFlashState = !_gwinFlashState;
 
-		// uRedraw all flashing windows
+		// Redraw all flashing windows
 		for(gh = (GHandle)gfxQueueASyncPeek(&_GWINList); gh; gh = (GHandle)gfxQueueASyncNext(&gh->wmq)) {
 			if ((gh->flags & GWIN_FLG_FLASHING)) {
-				uRedrawPending |= DOREDRAW_FLASHRUNNING;
+				RedrawPending |= DOREDRAW_FLASHRUNNING;
 				_gwinUpdate(gh);
 			}
 		}
 
 		// Do we have no flashers left?
-		if (!(uRedrawPending & DOREDRAW_FLASHRUNNING))
+		if (!(RedrawPending & DOREDRAW_FLASHRUNNING))
 			gtimerStop(&FlashTimer);
 	}
 
@@ -602,8 +638,8 @@ GHandle gwinGetNextWindow(GHandle gh) {
 			gh->flags |= GWIN_FLG_FLASHING;			// A redraw will occur on the next flash period.
 
 			// Start the flash timer if needed
-			if (!(uRedrawPending & DOREDRAW_FLASHRUNNING)) {
-				uRedrawPending |= DOREDRAW_FLASHRUNNING;
+			if (!(RedrawPending & DOREDRAW_FLASHRUNNING)) {
+				RedrawPending |= DOREDRAW_FLASHRUNNING;
 
 				// Ensure we start the timer with flash bit on
 				_gwinFlashState = FALSE;
@@ -654,7 +690,7 @@ static void WM_Init(void);
 static void WM_DeInit(void);
 static bool_t WM_Add(GHandle gh, const GWindowInit *pInit);
 static void WM_Delete(GHandle gh);
-static void WM_uRedraw(GHandle gh);
+static void WM_Redraw(GHandle gh);
 static void WM_Size(GHandle gh, coord_t w, coord_t h);
 static void WM_Move(GHandle gh, coord_t x, coord_t y);
 static void WM_Raise(GHandle gh);
@@ -665,7 +701,7 @@ static const gwmVMT GNullWindowManagerVMT = {
 	WM_DeInit,
 	WM_Add,
 	WM_Delete,
-	WM_uRedraw,
+	WM_Redraw,
 	WM_Size,
 	WM_Move,
 	WM_Raise,
@@ -709,13 +745,13 @@ static void WM_Delete(GHandle gh) {
 	gfxQueueASyncRemove(&_GWINList, &gh->wmq);
 }
 
-static void WM_uRedraw(GHandle gh) {
+static void WM_Redraw(GHandle gh) {
 	#if GWIN_NEED_CONTAINERS
 		redo_redraw:
 	#endif
 	if ((gh->flags & GWIN_FLG_SYSVISIBLE)) {
-		if (gh->vmt->uRedraw)
-			gh->vmt->uRedraw(gh);
+		if (gh->vmt->Redraw)
+			gh->vmt->Redraw(gh);
 		else if ((gh->flags & GWIN_FLG_BGREDRAW)) {
 			// We can't redraw but we want full coverage so just clear the area
 			gdispGFillArea(gh->display, gh->x, gh->y, gh->width, gh->height, gh->bgcolor);
@@ -766,13 +802,13 @@ static void WM_uRedraw(GHandle gh) {
 			// Clear the area to the background color
 			gdispGFillArea(gh->display, gh->x, gh->y, gh->width, gh->height, gwinGetDefaultBgColor());
 
-			// Now loop over all windows looking for overlaps. uRedraw them if they overlap the newly exposed area.
+			// Now loop over all windows looking for overlaps. Redraw them if they overlap the newly exposed area.
 			for(gx = gwinGetNextWindow(0); gx; gx = gwinGetNextWindow(gx)) {
 				if ((gx->flags & GWIN_FLG_SYSVISIBLE)
 						&& gx->display == gh->display
 						&& gx->x < gh->x+gh->width && gx->y < gh->y+gh->height && gx->x+gx->width >= gh->x && gx->y+gx->height >= gh->y) {
-					if (gx->vmt->uRedraw)
-						gx->vmt->uRedraw(gx);
+					if (gx->vmt->Redraw)
+						gx->vmt->Redraw(gx);
 					else
 						// We can't redraw this window but we want full coverage so just clear the area
 						gdispGFillArea(gx->display, gx->x, gx->y, gx->width, gx->height, gx->bgcolor);
@@ -782,7 +818,7 @@ static void WM_uRedraw(GHandle gh) {
 		}
 	}
 
-	// uRedraw is done
+	// Redraw is done
 	gh->flags &= ~(GWIN_FLG_NEEDREDRAW|GWIN_FLG_BGREDRAW|GWIN_FLG_PARENTREVEAL);
 }
 
@@ -824,7 +860,7 @@ static void WM_Size(GHandle gh, coord_t w, coord_t h) {
 		} else {
 			// We need to make this window invisible and ensure that has been drawn
 			gwinSetVisible(gh, FALSE);
-			_gwinFlushuRedraws(REDRAW_WAIT);
+			_gwinFlushRedraws(REDRAW_WAIT);
 
 			// Resize
 			gh->width = w; gh->height = h;
@@ -905,7 +941,7 @@ static void WM_Move(GHandle gh, coord_t x, coord_t y) {
 	if ((gh->flags & GWIN_FLG_SYSVISIBLE)) {
 		// We need to make this window invisible and ensure that has been drawn
 		gwinSetVisible(gh, FALSE);
-		_gwinFlushuRedraws(REDRAW_WAIT);
+		_gwinFlushRedraws(REDRAW_WAIT);
 
 		// Do the move
 		u = gh->x; gh->x = x;
@@ -952,7 +988,38 @@ static void WM_Raise(GHandle gh) {
 	gfxQueueASyncRemove(&_GWINList, &gh->wmq);
 	gfxQueueASyncPut(&_GWINList, &gh->wmq);
 
-	// uRedraw the window
+	#if GWIN_NEED_CONTAINERS
+		// Any children need to be raised too
+		if ((gh->flags & GWIN_FLG_CONTAINER)) {
+			GHandle		gx;
+			GHandle		child;
+			bool_t		restart;
+
+			// Raise the children too
+			// Note: Children can also have their own children so after each move we have to start again.
+			for (gx = gwinGetNextWindow(0); gx; gx = gwinGetNextWindow(gx)) {
+				if ((gx->flags & GWIN_FLG_CONTAINER)) {
+					restart = FALSE;
+					for (child = gwinGetNextWindow(0); child && child != gx; child = gwinGetNextWindow(child)) {
+						if (child->parent == gx) {
+							// Oops - this child is behind its parent. Move it to the front.
+							gfxQueueASyncRemove(&_GWINList, &child->wmq);
+							gfxQueueASyncPut(&_GWINList, &child->wmq);
+
+							// Restart at the front of the list for this parent container as we have moved this child
+							// to the end of the list. We also need to restart everything once this container is done.
+							child = 0;
+							restart = TRUE;
+						}
+					}
+					if (restart)
+						gx = 0;
+				}
+			}
+		}
+	#endif
+	
+	// Redraw the window
 	_gwinUpdate(gh);
 }
 

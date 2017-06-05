@@ -308,7 +308,7 @@ Bool glXMakeCurrent( Display *dpy, GLXDrawable drawable,
       }
 
       for (i=0; i<ZB_NB_COLORS; i++) {
-        xcolor.flags = DouRed | DouGreen | DouBlue;
+        xcolor.flags = DoRed | DoGreen | DoBlue;
         
         xcolor.red = (palette[i]>>8) & 0xFF00;
         xcolor.green = (palette[i] & 0xFF00);

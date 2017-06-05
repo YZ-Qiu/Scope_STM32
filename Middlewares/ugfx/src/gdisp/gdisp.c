@@ -5,24 +5,14 @@
  *              http://ugfx.org/license.html
  */
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 #if GFX_USE_GDISP
 
 /* Include the low level driver information */
 #include "gdisp_driver.h"
 
-#if 1
-	#undef INLINE
-	#if defined(__KEIL__) || defined(__C51__)
-		#define INLINE	__inline
-	#else
-		#define INLINE	inline
-	#endif
-#else
-	#undef INLINE
-	#define INLINE
-#endif
+#include "../gfx_compilers.h"
 
 // Number of milliseconds for the startup logo - 0 means disabled.
 #if GDISP_NEED_STARTUP_LOGO
@@ -30,6 +20,17 @@
 	#define GDISP_STARTUP_LOGO_COLOR		White
 #else
 	#define GDISP_STARTUP_LOGO_TIMEOUT		0
+#endif
+
+// For internal use only.
+#if GDISP_NEED_TEXT_WORDWRAP
+	typedef struct wrapParameters {
+		GDisplay* g;
+		coord_t x;
+		coord_t y;
+		font_t font;
+		justify_t justify;
+	} wrapParameters_t;
 #endif
 
 /*===========================================================================*/
@@ -81,7 +82,7 @@ GDisplay	*GDISP;
 /*==========================================================================*/
 
 #if GDISP_HARDWARE_STREAM_POS && GDISP_HARDWARE_STREAM_WRITE
-	static INLINE void setglobalwindow(GDisplay *g) {
+	static GFXINLINE void setglobalwindow(GDisplay *g) {
 		coord_t	x, y;
 		x = g->p.x; y = g->p.y;
 		g->p.x = g->p.y = 0;
@@ -117,7 +118,7 @@ GDisplay	*GDISP;
 // Parameters:	x,y
 // Alters:		cx, cy (if using streaming)
 // Does not clip
-static INLINE void drawpixel(GDisplay *g) {
+static GFXINLINE void drawpixel(GDisplay *g) {
 
 	// Best is hardware accelerated pixel draw
 	#if GDISP_HARDWARE_DRAWPIXEL
@@ -164,7 +165,7 @@ static INLINE void drawpixel(GDisplay *g) {
 // Parameters:	x,y
 // Alters:		cx, cy (if using streaming)
 #if NEED_CLIPPING
-	static INLINE void drawpixel_clip(GDisplay *g) {
+	static GFXINLINE void drawpixel_clip(GDisplay *g) {
 		#if GDISP_HARDWARE_CLIP == HARDWARE_AUTODETECT
 			if (!gvmt(g)->setclip)
 		#endif
@@ -183,16 +184,27 @@ static INLINE void drawpixel(GDisplay *g) {
 // Alters:		nothing
 // Note:		This is not clipped
 // Resets the streaming area if GDISP_HARDWARE_STREAM_WRITE and GDISP_HARDWARE_STREAM_POS is set.
-static INLINE void fillarea(GDisplay *g) {
+static GFXINLINE void fillarea(GDisplay *g) {
+
+	// Best is hardware accelerated area fill
+	#if GDISP_HARDWARE_FILLS
+		#if GDISP_HARDWARE_FILLS == HARDWARE_AUTODETECT
+			if (gvmt(g)->fill)
+		#endif
+		{
+			gdisp_lld_fill_area(g);
+			return;
+		}
+	#endif
 
 	// Next best is hardware streaming
-	//FUJI use this
 	#if GDISP_HARDWARE_FILLS != TRUE && GDISP_HARDWARE_STREAM_WRITE
 		#if GDISP_HARDWARE_STREAM_WRITE == HARDWARE_AUTODETECT
 			if (gvmt(g)->writestart)
 		#endif
 		{
 			uint32_t	area;
+
 			#if GDISP_HARDWARE_STREAM_POS
 				if ((g->flags & GDISP_FLG_SCRSTREAM)) {
 					gdisp_lld_write_stop(g);
@@ -201,35 +213,20 @@ static INLINE void fillarea(GDisplay *g) {
 			#endif
 
 			area = (uint32_t)g->p.cx * g->p.cy;
-			gdisp_lld_write_start(g);  //set_viewport
+			gdisp_lld_write_start(g);
 			#if GDISP_HARDWARE_STREAM_POS
 				#if GDISP_HARDWARE_STREAM_POS == HARDWARE_AUTODETECT
 					if (gvmt(g)->writepos)
 				#endif
-			gdisp_lld_write_pos(g); //set_cursor
+				gdisp_lld_write_pos(g);
 			#endif
 			for(; area; area--)
-			{
 				gdisp_lld_write_color(g);
-			//	gfxSleepMilliseconds(5);
-			}
-				
 			gdisp_lld_write_stop(g);
 			return;
 		}
 	#endif
-	// Best is hardware accelerated area fill
-	#if GDISP_HARDWARE_FILLS
-		#if GDISP_HARDWARE_FILLS == HARDWARE_AUTODETECT
-			if (gvmt(g)->fill)
-		#endif
-		{
-			gdisp_lld_fill_area(g);
 
-			return;
-		}
-	#endif
-	
 	// Worst is pixel drawing
 	#if GDISP_HARDWARE_FILLS != TRUE && GDISP_HARDWARE_STREAM_WRITE != TRUE && GDISP_HARDWARE_DRAWPIXEL
 		// The following test is unneeded because we are guaranteed to have draw pixel if we don't have streaming
@@ -259,9 +256,7 @@ static INLINE void fillarea(GDisplay *g) {
 static void hline_clip(GDisplay *g) {
 	// Swap the points if necessary so it always goes from x to x1
 	if (g->p.x1 < g->p.x) {
-		g->p.cx = g->p.x;
-		g->p.x = g->p.x1;
-		g->p.x1 = g->p.cx;
+		g->p.cx = g->p.x; g->p.x = g->p.x1; g->p.x1 = g->p.cx;
 	}
 
 	// Clipping
@@ -349,9 +344,7 @@ static void hline_clip(GDisplay *g) {
 static void vline_clip(GDisplay *g) {
 	// Swap the points if necessary so it always goes from y to y1
 	if (g->p.y1 < g->p.y) {
-		g->p.cy = g->p.y;
-		g->p.y = g->p.y1;
-		g->p.y1 = g->p.cy;
+		g->p.cy = g->p.y; g->p.y = g->p.y1; g->p.y1 = g->p.cy;
 	}
 
 	// Clipping
@@ -509,14 +502,10 @@ static void line_clip(GDisplay *g) {
 }
 
 #if GDISP_STARTUP_LOGO_TIMEOUT > 0
-	static bool_t	initDone;
+	static bool_t	gdispInitDone;
 	static void StartupLogoDisplay(GDisplay *g) {
 		coord_t			x, y, w;
 		const coord_t *	p;
-
-		 //  gdispFillArea(50,50,10,100,White);
-		// gdispGFillArea(g, 50, 50,10, 100, GDISP_STARTUP_LOGO_COLOR);
-		
 		static const coord_t blks[] = {
 				// u
 				2, 6, 1, 10,
@@ -548,10 +537,8 @@ static void line_clip(GDisplay *g) {
 		y = (g->g.Height - (16*1)*w)/2;
 
 		// Simple but crude!
-		
 		for(p = blks; p < blks+sizeof(blks)/sizeof(blks[0]); p+=4)
 			gdispGFillArea(g, x+p[0]*w, y+p[1]*w, p[2]*w, p[3]*w, GDISP_STARTUP_LOGO_COLOR);
-		
 	}
 #endif
 
@@ -572,7 +559,6 @@ static void line_clip(GDisplay *g) {
 void _gdispInit(void)
 {
 	// GDISP_DRIVER_LIST is defined - create each driver instance
-
 	#if defined(GDISP_DRIVER_LIST)
 		{
 			unsigned	i;
@@ -586,7 +572,6 @@ void _gdispInit(void)
 					gdriverRegister(&dclist[i]->d, 0);
 			}
 		}
-
 	#elif GDISP_TOTAL_DISPLAYS > 1
 		{
 			unsigned	i;
@@ -620,7 +605,7 @@ void _gdispInit(void)
 				#endif
 			}
 
-			initDone = TRUE;
+			gdispInitDone = TRUE;
 		}
 	#endif
 
@@ -676,7 +661,7 @@ void _gdispPostInitDriver(GDriver *g) {
 
 	// Display the startup logo if this is a static initialised display
 	#if GDISP_STARTUP_LOGO_TIMEOUT > 0
-		if (!initDone)
+		if (!gdispInitDone)
 			StartupLogoDisplay(gd);
 	#endif
 
@@ -1275,7 +1260,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			{
 				if (x < 0) { cx += x; x = 0; }
 				if (y < 0) { cy += y; y = 0; }
-				if (cx <= 0 || cy <= 0 || x >= g->g.Width || y >= g->g.Height) { MUTEX_EXIT(g); return; }
+				if (cx <= 0 || cy <= 0 || x >= g->g.Width || y >= g->g.Height) { x = y = cx = cy = 0; }
 				g->clipx0 = x;
 				g->clipy0 = y;
 				g->clipx1 = x+cx;	if (g->clipx1 > g->g.Width) g->clipx1 = g->g.Width;
@@ -1362,6 +1347,83 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 		autoflush(g);
 		MUTEX_EXIT(g);
 	}
+#endif
+
+#if GDISP_NEED_DUALCIRCLE
+
+	#define DRAW_DUALLINE(yval, r1, r2) 										\
+		g->p.y = yval;															\
+		g->p.x = x-r1;   g->p.x1 = x-r2+1; hline_clip(g);						\
+		g->p.x = x-r2;   g->p.x1 = x+r2;   g->p.color = color2; hline_clip(g);	\
+		g->p.x = x+r2+1; g->p.x1 = x+r1;   g->p.color = color1; hline_clip(g)
+	#define DRAW_SINGLELINE(yval, r)	g->p.y = yval; g->p.x = x-r; g->p.x1 = x+r; hline_clip(g)
+
+	void gdispGFillDualCircle(GDisplay *g, coord_t x, coord_t y, coord_t radius1, color_t color1, coord_t radius2, color_t color2) {
+		coord_t a, b1, b2, p1, p2;
+
+		MUTEX_ENTER(g);
+
+		// Do the combined circle where the inner circle < 45 deg (and outer circle)
+		g->p.color = color1;
+		a = 0; b1 = radius1; b2 = radius2; p1 = p2 = 1;
+		do {
+			DRAW_DUALLINE(y+a, b1, b2);
+			DRAW_DUALLINE(y-a, b1, b2);
+			if (p1 >= 0) p1 -= b1--;
+			p1 += a;
+			if (p2 >= 0) p2 -= b2--;
+			p2 += a;
+		} while(++a < b2);
+
+		// Do the combined circle where inner circle > 45 deg, outer circle < 45
+		do {
+			DRAW_DUALLINE(y+a, b1, b2);
+			DRAW_DUALLINE(y-a, b1, b2);
+			if (p1 >= 0) p1 -= b1--;
+			p1 += a;
+			do { p2 -= --b2; } while (p2+a >= b2);
+			p2 += a;
+		} while(++a <= radius2 && a < b1);
+		
+		if (a < radius2) {
+			// Do the combined circle where inner circle > 45 deg, outer circle > 45
+			do {
+				DRAW_DUALLINE(y+a, b1, b2);
+				DRAW_DUALLINE(y-a, b1, b2);
+				do { p1 -= --b1; } while (p1+a >= b1);
+				p1 += a;
+				do { p2 -= --b2; } while (p2+a >= b2);
+				p2 += a++;
+			} while(b2 > 0);
+			
+		} else {
+			// Do the outer circle above the inner circle but < 45 deg
+			do {
+				DRAW_SINGLELINE(y+a, b1);
+				DRAW_SINGLELINE(y-a, b1);
+				if (p1 >= 0) p1 -= b1--;
+				p1 += a++;
+			} while(a < b1);
+			DRAW_SINGLELINE(y+a, b1);
+			DRAW_SINGLELINE(y-a, b1);
+		}
+
+		// Do the top and bottom part of the outer circle (outer circle > 45deg and above inner circle)
+		a = 0; b1 = radius1; p1 = 1;
+		do {
+			if (p1 >= 0) {
+				DRAW_SINGLELINE(y+b1, a);
+				DRAW_SINGLELINE(y-b1, a);
+				p1 -= b1--;
+			}
+			p1 += a++;
+		} while(b1 > radius2 && a < b1);
+
+		autoflush(g);
+		MUTEX_EXIT(g);
+	}
+	#undef DRAW_DUALLINE
+	#undef DRAW_SINGLELINE
 #endif
 
 #if GDISP_NEED_ELLIPSE
@@ -1739,11 +1801,11 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			sedge = NONFIXED(radius * ((sbit & 0x99) ? ffsin(start) : ffcos(start)) + FIXED0_5);
 			eedge = NONFIXED(radius * ((ebit & 0x99) ? ffsin(end) : ffcos(end)) + FIXED0_5);
 		#elif GFX_USE_GMISC && GMISC_NEED_FASTTRIG
-			sedge = round(radius * ((sbit & 0x99) ? fsin(start) : fcos(start)));
-			eedge = round(radius * ((ebit & 0x99) ? fsin(end) : fcos(end)));
+			sedge = floor(radius * ((sbit & 0x99) ? fsin(start) : fcos(start)) + 0.5);
+			eedge = floor(radius * ((ebit & 0x99) ? fsin(end) : fcos(end)) + 0.5);
 		#else
-			sedge = round(radius * ((sbit & 0x99) ? sin(start*M_PI/180) : cos(start*M_PI/180)));
-			eedge = round(radius * ((ebit & 0x99) ? sin(end*M_PI/180) : cos(end*M_PI/180)));
+			sedge = floor(radius * ((sbit & 0x99) ? sin(start*GFX_PI/180) : cos(start*GFX_PI/180)) + 0.5);
+			eedge = floor(radius * ((ebit & 0x99) ? sin(end*GFX_PI/180) : cos(end*GFX_PI/180)) + 0.5);
 		#endif
 		if (sbit & 0xB4) sedge = -sedge;
 		if (ebit & 0xB4) eedge = -eedge;
@@ -1852,6 +1914,125 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 #endif
 
 #if GDISP_NEED_ARC
+	#if (!GMISC_NEED_FIXEDTRIG && !GMISC_NEED_FASTTRIG) || !GFX_USE_GMISC
+		#include <math.h>
+	#endif
+
+	void gdispGDrawThickArc(GDisplay *g, coord_t xc, coord_t yc, coord_t radiusStart, coord_t radiusEnd, coord_t start, coord_t end, color_t color) {
+		coord_t x, y, d, r;
+		coord_t startTan, endTan, curangle;
+		coord_t precision = 512;
+
+		// Normalize the angles
+		if (start < 0)
+			start -= (start/360-1)*360;
+		else if (start >= 360)
+			start %= 360;
+		if (end < 0)
+			end -= (end/360-1)*360;
+		else if (end >= 360)
+			end %= 360;
+
+		#if GFX_USE_GMISC && GMISC_NEED_FIXEDTRIG
+			if((start / 45) % 2 == 0){
+				startTan = ffsin(start % 45) * precision / ffcos(start % 45) + start / 45 * precision;}
+			else{
+				startTan = ffsin(start % 45 - 45) * precision / ffcos(start % 45 - 45) + start / 45 * precision + precision;}
+
+			if((end / 45) % 2 == 0){
+				endTan = ffsin(end % 45) * precision / ffcos(end % 45) + end / 45 * precision;}
+			else{
+				endTan = ffsin(end % 45 - 45) * precision / ffcos(end % 45 - 45) + end / 45 * precision + precision;}
+		#elif GFX_USE_GMISC && GMISC_NEED_FASTTRIG
+			if((start / 45) % 2 == 0){
+				startTan = fsin(start % 45) * precision / fcos(start % 45) + start / 45 * precision;}
+			else{
+				startTan = fsin(start % 45 - 45) * precision / fcos(start % 45 - 45) + start / 45 * precision + precision;}
+
+			if((end / 45) % 2 == 0){
+				endTan = fsin(end % 45) * precision / fcos(end % 45) + end / 45 * precision;}
+			else{
+				endTan = fsin(end % 45 - 45) * precision / fcos(end % 45 - 45) + end / 45 * precision + precision;}
+		#else
+			if((start / 45) % 2 == 0){
+				startTan = (tan((start % 45)*GFX_PI/180) + start / 45)* precision;}
+			else{
+				startTan = (1+tan((start % 45 - 45)*GFX_PI/180) + start / 45)* precision;}
+
+			if((end / 45) % 2 == 0){
+				endTan = (tan((end % 45) *GFX_PI/180) + end / 45) * precision;}
+			else{
+				endTan = (1+tan((end % 45 - 45) *GFX_PI/180) + end / 45) * precision;}
+		#endif
+
+		MUTEX_ENTER(g);
+		g->p.color = color;
+
+		//Draw concentric circles using Andres algorithm
+		for(r = radiusStart; r <= radiusEnd; r++)
+		{
+			x = 0;
+			y = r;
+			d = r - 1;
+
+			while (y >= x){
+				//approximate tan
+				curangle = x*precision/y;
+
+				if(end > start){
+					g->p.color = color;
+					//Draw points by symmetry
+					if(curangle > startTan && curangle < endTan){g->p.y = yc - x; g->p.x = xc + y; drawpixel_clip(g);}
+					if(curangle + 2*precision > startTan && curangle + 2*precision < endTan){g->p.y = yc - y; g->p.x = xc - x; drawpixel_clip(g);}
+					if(curangle + 4*precision > startTan && curangle + 4*precision < endTan){g->p.y = yc + x; g->p.x = xc - y; drawpixel_clip(g);}
+					if(curangle + 6*precision > startTan && curangle + 6*precision < endTan){g->p.y = yc + y; g->p.x = xc + x; drawpixel_clip(g);}
+
+					curangle = precision - curangle;
+
+					if(curangle + precision > startTan && curangle + precision < endTan){g->p.y = yc - y; g->p.x = xc + x; drawpixel_clip(g);}
+					if(curangle + 3*precision > startTan && curangle + 3*precision < endTan){g->p.y = yc - x; g->p.x = xc - y; drawpixel_clip(g);}
+					if(curangle + 5*precision > startTan && curangle + 5*precision < endTan){g->p.y = yc + y; g->p.x = xc - x; drawpixel_clip(g);}
+					if(curangle + 7*precision > startTan && curangle + 7*precision < endTan){g->p.y = yc + x; g->p.x = xc + y; drawpixel_clip(g);}
+						
+				}
+				else{
+					//Draw points by symmetry
+					if(curangle > startTan || curangle < endTan){g->p.y = yc - x; g->p.x = xc + y; drawpixel_clip(g);}
+					if(curangle + 2*precision > startTan || curangle + 2*precision < endTan){g->p.y = yc - y; g->p.x = xc - x; drawpixel_clip(g);}
+					if(curangle + 4*precision > startTan || curangle + 4*precision < endTan){g->p.y = yc + x; g->p.x = xc - y; drawpixel_clip(g);}
+					if(curangle + 6*precision > startTan || curangle + 6*precision < endTan){g->p.y = yc + y; g->p.x = xc + x; drawpixel_clip(g);}
+
+					curangle = precision - curangle;
+
+					if(curangle + precision > startTan || curangle + precision < endTan){g->p.y = yc - y; g->p.x = xc + x; drawpixel_clip(g);}
+					if(curangle + 3*precision > startTan || curangle + 3*precision < endTan){g->p.y = yc - x; g->p.x = xc - y; drawpixel_clip(g);}
+					if(curangle + 5*precision > startTan || curangle + 5*precision < endTan){g->p.y = yc + y; g->p.x = xc - x; drawpixel_clip(g);}
+					if(curangle + 7*precision > startTan || curangle + 7*precision < endTan){g->p.y = yc + x; g->p.x = xc + y; drawpixel_clip(g);}					
+				}
+
+				//Compute next point
+				if (d >= 2 * x){
+					d -= 2 * x + 1;
+					x++;
+				}
+				else if (d < 2 * (r - y)){
+					d += 2 * y - 1;
+					y--;
+				}
+				else{
+					d += 2 * (y - x - 1);
+					y--;
+					x++;
+				}
+			}
+		}
+
+		autoflush(g);
+		MUTEX_EXIT(g);
+	}
+#endif
+
+#if GDISP_NEED_ARC
 	void gdispGFillArc(GDisplay *g, coord_t x, coord_t y, coord_t radius, coord_t start, coord_t end, color_t color) {
 		coord_t a, b, P;
 		coord_t	sy, ey;
@@ -1860,17 +2041,21 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 
 		MUTEX_ENTER(g);
 
+		// We add a half pixel so that we are drawing from the centre of the pixel
+		//	instead of the left edge of the pixel. This also fixes the implied floor()
+		//	when converting back to a coord_t
+		sxa = exa = FIXED(x) + FIXED0_5;
+
 		// Do the trig to get the formulas for the start and end lines.
-		sxa = exa = FIXED(x)+FIXED0_5;
 		#if GFX_USE_GMISC && GMISC_NEED_FIXEDTRIG
-			sxb = radius*ffcos(start);	sy = -NONFIXED(radius*ffsin(start) + FIXED0_5);
-			exb = radius*ffcos(end);	ey = -NONFIXED(radius*ffsin(end) + FIXED0_5);
+			sxb = radius*ffcos(start);	sy = NONFIXED(FIXED0_5 - radius*ffsin(start));
+			exb = radius*ffcos(end);	ey = NONFIXED(FIXED0_5 - radius*ffsin(end));
 		#elif GFX_USE_GMISC && GMISC_NEED_FASTTRIG
-			sxb = FP2FIXED(radius*fcos(start));	sy = -round(radius*fsin(start));
-			exb = FP2FIXED(radius*fcos(end));	ey = -round(radius*fsin(end));
+			sxb = FP2FIXED(radius*fcos(start));	sy = floor(0.5-radius*fsin(start));
+			exb = FP2FIXED(radius*fcos(end));	ey = floor(0.5-radius*fsin(end));
 		#else
-			sxb = FP2FIXED(radius*cos(start*M_PI/180));	sy = -round(radius*sin(start*M_PI/180));
-			exb = FP2FIXED(radius*cos(end*M_PI/180));	ey = -round(radius*sin(end*M_PI/180));
+			sxb = FP2FIXED(radius*cos(start*GFX_PI/180));	sy = floor(0.5-radius*sin(start*GFX_PI/180));
+			exb = FP2FIXED(radius*cos(end*GFX_PI/180));		ey = floor(0.5-radius*sin(end*GFX_PI/180));
 		#endif
 		sxd = sy ? sxb/sy : sxb;
 		exd = ey ? exb/ey : exb;
@@ -1881,7 +2066,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 		if (sy > 0) 	qtr |= 0x02;
 		if (exb > 0)	qtr |= 0x04;		// E1=0100(4), E2=0000(0), E3=1000(8), E4=1100(12)
 		if (ey > 0) 	qtr |= 0x08;
-		if (sy > ey)	qtr |= 0x10;		// order of start and end lines
+		if (sy > ey || (sy == ey && sxb > 0))	qtr |= 0x10;		// order of start and end lines
 
 		// Calculate intermediates
 		a = 1;
@@ -1898,7 +2083,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 		case 0:		// S2E2 sy <= ey
 		case 1:		// S1E2 sy <= ey
 			if (ey && sy) {
-				g->p.x = x; g->p.x1 = x;									// E2S
+				g->p.x = x; g->p.x1 = x;								// E2S
 				sxa -= sxd; exa -= exd;
 			} else if (sy) {
 				g->p.x = x-b; g->p.x1 = x;								// C2S
@@ -1907,7 +2092,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 				g->p.x = x; g->p.x1 = x+b;								// E2C
 				exa -= exd;
 			} else {
-				g->p.x = x-b; g->p.x1 = x+b;								// C2C
+				g->p.x = x-b; g->p.x1 = x+b;							// C2C
 			}
 			g->p.y = y;
 			hline_clip(g);
@@ -1916,7 +2101,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = NONFIXED(sxa); hline_clip(g);		// E2S
 					sxa -= sxd; exa -= exd;
 				} else if (-a >= sy) {
-					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);				// C2S
+					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);					// C2S
 					sxa -= sxd;
 				} else if (qtr & 1) {
 					g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
@@ -1928,7 +2113,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 						g->p.y = y-b; g->p.x = NONFIXED(exb); g->p.x1 = NONFIXED(sxb); hline_clip(g);	// E2S
 						sxb += sxd; exb += exd;
 					} else if (-b >= sy) {
-						g->p.y = y-b; g->p.x = x-a; g->p.x1 = NONFIXED(sxb); hline_clip(g);			// C2S
+						g->p.y = y-b; g->p.x = x-a; g->p.x1 = NONFIXED(sxb); hline_clip(g);				// C2S
 						sxb += sxd;
 					} else if (qtr & 1) {
 						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
@@ -1939,7 +2124,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			if (-a >= ey) {
 				g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = NONFIXED(sxa); hline_clip(g);			// E2S
 			} else if (-a >= sy) {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);					// C2S
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);						// C2S
 			} else if (qtr & 1) {
 				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
 			}
@@ -1957,13 +2142,13 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			sxa += sxd; exa -= exd;
 			do {
 				if (-a >= ey) {
-					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);		// E2C
+					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);			// E2C
 					exa -= exd;
 				} else if (!(qtr & 4)) {
 					g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);					// C2C
 				}
 				if (a <= sy) {
-					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);		// S2C
+					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);			// S2C
 					sxa += sxd;
 				} else if (!(qtr & 1)) {
 					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);					// C2C
@@ -1975,7 +2160,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 						g->p.y = y-b; g->p.x = NONFIXED(exb); g->p.x1 = x+a; hline_clip(g);		// E2C
 						exb += exd;
 					} else if (!(qtr & 4)) {
-						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);					// C2C
+						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);				// C2C
 					}
 					if (b <= sy) {
 						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = x+a; hline_clip(g);		// S2C
@@ -1989,56 +2174,56 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			if (-a >= ey) {
 				g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);				// E2C
 			} else if (!(qtr & 4)) {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);						// C2C
 			}
 			if (a <= sy) {
 				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+a; hline_clip(g);				// S2C
 			} else if (!(qtr & 1)) {
-				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+a; hline_clip(g);							// C2C
+				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+a; hline_clip(g);						// C2C
 			}
 			break;
 
 		case 4:		// S2E1 sy <= ey
 		case 5:		// S1E1 sy <= ey
-			g->p.y = y; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);									// C2C
+			g->p.y = y; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
 			do {
 				if (-a >= ey) {
-					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);				// C2S
-					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);				// E2C
+					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);			// C2S
+					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);			// E2C
 					sxa -= sxd; exa -= exd;
 				} else if (-a >= sy) {
-					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);				// C2S
+					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);			// C2S
 					sxa -= sxd;
 				} else if (qtr & 1) {
-					g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
+					g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);					// C2C
 				}
-				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
+				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);						// C2C
 				if (P < 0) {
 					P += 3 + 2*a++;
 				} else {
 					if (-b >= ey) {
-						g->p.y = y-b; g->p.x = x-a; g->p.x1 = NONFIXED(sxb); hline_clip(g);			// C2S
-						g->p.y = y-b; g->p.x = NONFIXED(exb); g->p.x1 = x+a; hline_clip(g);			// E2C
+						g->p.y = y-b; g->p.x = x-a; g->p.x1 = NONFIXED(sxb); hline_clip(g);		// C2S
+						g->p.y = y-b; g->p.x = NONFIXED(exb); g->p.x1 = x+a; hline_clip(g);		// E2C
 						sxb += sxd; exb += exd;
 					} else if (-b >= sy) {
-						g->p.y = y-b; g->p.x = x-a; g->p.x1 = NONFIXED(sxb); hline_clip(g);			// C2S
+						g->p.y = y-b; g->p.x = x-a; g->p.x1 = NONFIXED(sxb); hline_clip(g);		// C2S
 						sxb += sxd;
 					} else if (qtr & 1) {
-						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
+						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);				// C2C
 					}
-					g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);							// C2C
+					g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);					// C2C
 					P += 5 + 2*(a++ - b--);
 				}
 			} while(a < b);
 			if (-a >= ey) {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);					// C2S
-				g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);					// E2C
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);				// C2S
+				g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);				// E2C
 			} else if (-a >= sy) {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);					// C2S
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);				// C2S
 			} else if (qtr & 1) {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);						// C2C
 			}
-			g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);									// C2C
+			g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);							// C2C
 			break;
 
 		case 8:		// S2E3 sy <= ey
@@ -2053,13 +2238,13 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			sxa -= sxd; exa += exd;
 			do {
 				if (-a >= sy) {
-					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);		// C2S
+					g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);			// C2S
 					sxa -= sxd;
 				} else if (qtr & 1) {
 					g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);					// C2C
 				}
 				if (a <= ey) {
-					g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);		// C2E
+					g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);			// C2E
 					exa += exd;
 				} else if (qtr & 4) {
 					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);					// C2C
@@ -2071,7 +2256,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 						g->p.y = y-b; g->p.x = x-a; g->p.x1 = NONFIXED(sxb); hline_clip(g);		// C2S
 						sxb += sxd;
 					} else if (qtr & 1) {
-						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);					// C2C
+						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);				// C2C
 					}
 					if (b <= ey) {
 						g->p.y = y+b; g->p.x = x-a; g->p.x1 = NONFIXED(exb); hline_clip(g);		// C2E
@@ -2085,12 +2270,12 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			if (-a >= sy) {
 				g->p.y = y-a; g->p.x = x-b; g->p.x1 = NONFIXED(sxa); hline_clip(g);				// C2S
 			} else if (qtr & 1) {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);						// C2C
 			}
 			if (a <= ey) {
 				g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);				// C2E
 			} else if (qtr & 4) {
-				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+a; hline_clip(g);							// C2C
+				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+a; hline_clip(g);						// C2C
 			}
 			break;
 
@@ -2103,7 +2288,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = NONFIXED(exa); hline_clip(g);		// S2E
 					sxa += sxd; exa += exd;
 				} else if (a <= ey) {
-					g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);				// C2E
+					g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);					// C2E
 					exa += exd;
 				} else if (qtr & 4) {
 					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
@@ -2112,23 +2297,23 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 					P += 3 + 2*a++;
 				} else {
 					if (b <= sy) {
-						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = NONFIXED(exb); hline_clip(g);		// S2E
+						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = NONFIXED(exb); hline_clip(g);	// S2E
 						sxb -= sxd; exb -= exd;
 					} else if (b <= ey) {
 						g->p.y = y+b; g->p.x = x-a; g->p.x1 = NONFIXED(exb); hline_clip(g);				// C2E
 						exb -= exd;
 					} else if (qtr & 4) {
-						g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);							// C2C
+						g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
 					}
 					P += 5 + 2*(a++ - b--);
 				}
 			} while(a < b);
 			if (a <= sy) {
-				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = NONFIXED(exa); hline_clip(g);		// S2E
+				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = NONFIXED(exa); hline_clip(g);			// S2E
 			} else if (a <= ey) {
-				g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);				// C2E
+				g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);						// C2E
 			} else if (qtr & 4) {
-				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
+				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
 			}
 			break;
 
@@ -2136,7 +2321,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 		case 15:	// S4E4 sy <= ey
 			g->p.y = y; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);									// C2C
 			do {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
 				if (a <= sy) {
 					g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);				// C2E
 					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);				// S2C
@@ -2145,12 +2330,12 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 					g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);				// C2E
 					exa += exd;
 				} else if (qtr & 4) {
-					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
+					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);						// C2C
 				}
 				if (P < 0) {
 					P += 3 + 2*a++;
 				} else {
-					g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);							// C2C
+					g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
 					if (b <= sy) {
 						g->p.y = y+b; g->p.x = x-a; g->p.x1 = NONFIXED(exb); hline_clip(g);			// C2E
 						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = x+a; hline_clip(g);			// S2C
@@ -2159,19 +2344,19 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 						g->p.y = y+b; g->p.x = x-a; g->p.x1 = NONFIXED(exb); hline_clip(g);			// C2E
 						exb -= exd;
 					} else if (qtr & 4) {
-						g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
+						g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);					// C2C
 					}
 					P += 5 + 2*(a++ - b--);
 				}
 			} while(a < b);
-			g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);									// C2C
+			g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
 			if (a <= sy) {
 				g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);					// C2E
 				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);					// S2C
 			} else if (a <= ey) {
 				g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);					// C2E
 			} else if (qtr & 4) {
-				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
+				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
 			}
 			break;
 
@@ -2225,7 +2410,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 				g->p.x = x; g->p.x1 = x;																// E2S
 				sxa -= sxd; exa -= exd;
 			} else {
-				g->p.x = x; g->p.x1 = x+b;															// E2C
+				g->p.x = x; g->p.x1 = x+b;																// E2C
 				exa -= exd;
 			}
 			g->p.y = y;
@@ -2235,7 +2420,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = NONFIXED(sxa); hline_clip(g);		// E2S
 					sxa -= sxd; exa -= exd;
 				} else if (-a >= ey) {
-					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);				// E2C
+					g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);					// E2C
 					exa -= exd;
 				} else if (!(qtr & 4)) {
 					g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
@@ -2247,7 +2432,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 						g->p.y = y-b; g->p.x = NONFIXED(exb); g->p.x1 = NONFIXED(sxb); hline_clip(g);	// E2S
 						sxb += sxd; exb += exd;
 					} else if (-b >= ey) {
-						g->p.y = y-b; g->p.x = NONFIXED(exb); g->p.x1 = x+a; hline_clip(g);			// E2C
+						g->p.y = y-b; g->p.x = NONFIXED(exb); g->p.x1 = x+a; hline_clip(g);				// E2C
 						exb += exd;
 					} else if (!(qtr & 4)) {
 						g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
@@ -2258,7 +2443,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 			if (-a >= sy) {
 				g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = NONFIXED(sxa); hline_clip(g);			// E2S
 			} else if (-a >= ey) {
-				g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);					// E2C
+				g->p.y = y-a; g->p.x = NONFIXED(exa); g->p.x1 = x+b; hline_clip(g);						// E2C
 			} else if (!(qtr & 4)) {
 				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
 			}
@@ -2268,7 +2453,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 		case 27:	// S4E3 sy > ey
 			g->p.y = y; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);									// C2C
 			do {
-				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
+				g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
 				if (a <= ey) {
 					g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);				// C2E
 					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);				// S2C
@@ -2277,12 +2462,12 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);				// S2C
 					sxa += sxd;
 				} else if (!(qtr & 1)) {
-					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
+					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);						// C2C
 				}
 				if (P < 0) {
 					P += 3 + 2*a++;
 				} else {
-					g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);							// C2C
+					g->p.y = y-b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
 					if (b <= ey) {
 						g->p.y = y+b; g->p.x = x-a; g->p.x1 = NONFIXED(exb); hline_clip(g);			// C2E
 						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = x+a; hline_clip(g);			// S2C
@@ -2291,19 +2476,19 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = x+a; hline_clip(g);			// S2C
 						sxb -= sxd;
 					} else if (!(qtr & 1)) {
-						g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
+						g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);					// C2C
 					}
 					P += 5 + 2*(a++ - b--);
 				}
 			} while(a < b);
-			g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);									// C2C
+			g->p.y = y-a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
 			if (a <= ey) {
 				g->p.y = y+a; g->p.x = x-b; g->p.x1 = NONFIXED(exa); hline_clip(g);					// C2E
 				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);					// S2C
 			} else if (a <= sy) {
 				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);					// S2C
 			} else if (!(qtr & 4)) {
-				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
+				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
 			}
 			break;
 
@@ -2314,7 +2499,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = NONFIXED(exa); hline_clip(g);		// S2E
 					sxa += sxd; exa += exd;
 				} else if (a <= sy) {
-					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);				// S2C
+					g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);					// S2C
 					sxa += sxd;
 				} else if (!(qtr & 1)) {
 					g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);							// C2C
@@ -2326,7 +2511,7 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = NONFIXED(exb); hline_clip(g);	// S2E
 						sxb -= sxd; exb -= exd;
 					} else if (b <= sy) {
-						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = x+a; hline_clip(g);			// S2C
+						g->p.y = y+b; g->p.x = NONFIXED(sxb); g->p.x1 = x+a; hline_clip(g);				// S2C
 						sxb -= sxd;
 					} else if (!(qtr & 1)) {
 						g->p.y = y+b; g->p.x = x-a; g->p.x1 = x+a; hline_clip(g);						// C2C
@@ -2335,9 +2520,9 @@ void gdispGBlitArea(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, c
 				}
 			} while(a < b);
 			if (a <= ey) {
-				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);				// S2C
+				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = NONFIXED(exa); hline_clip(g);			// S2E
 			} else if (a <= sy) {
-				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);					// S2C
+				g->p.y = y+a; g->p.x = NONFIXED(sxa); g->p.x1 = x+b; hline_clip(g);						// S2C
 			} else if (!(qtr & 4)) {
 				g->p.y = y+a; g->p.x = x-b; g->p.x1 = x+b; hline_clip(g);								// C2C
 			}
@@ -2886,6 +3071,7 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 
 			/* Replace the appropriate point */
 			if (ymax == lpnt->y) {
+				lx -= FIXED0_5;
 				for (lpnt = lpnt <= pntarray ? epnts : lpnt-1; lpnt->y == y; cnt--) {
 					if (!cnt) {
 						autoflush(g);
@@ -2898,6 +3084,7 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 				lk = (FIXED(lpnt->x) - lx) / (lpnt->y - y);
 				lx += FIXED0_5;
 			} else {
+				rx -= FIXED0_5;
 				for (rpnt = rpnt >= epnts ? pntarray : rpnt+1; rpnt->y == y; cnt--) {
 					if (!cnt) {
 						autoflush(g);
@@ -2925,75 +3112,43 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	 * equal to 'norm'. */
 	static void get_normal_vector(coord_t dx, coord_t dy, coord_t norm, coord_t *nx, coord_t *ny)
 	{
-		int32_t dx2, dy2, len_sq, norm_sq, norm_sq2;
-		int div, step, best, delta, abs_delta;
+		coord_t absDx, absDy;
+		int32_t len_n, len, len2;
+		char maxSteps;
 
-		dx2 = dx; dy2 = dy;
-		norm_sq = (int32_t)norm * norm;
-		norm_sq2 = norm_sq * 512;
+		/* Take the absolute value of dx and dy, multiplied by 2 for precision */
+		absDx = (dx >= 0 ? dx : -dx) * 2;
+		absDy = (dy >= 0 ? dy : -dy) * 2;
 
-		/* Scale dx2 and dy2 so that
-		 *     len_sq / 2 <= norm_sq * 512 <= len_sq * 2.
-		 * The scaling by 512 is to yield higher accuracy in division later. */
-		len_sq = dx2 * dx2 + dy2 * dy2;
+		/* Compute the quadrate length */
+		len2 = absDx * absDx + absDy * absDy;
 
-		if (len_sq < norm_sq2)
+		/* First aproximation : length = |dx| + |dy| */
+		len = absDx + absDy;
+
+		/* Give a max number of steps, the calculation usually takes 3 or 4 */
+		for(maxSteps = 8; maxSteps > 0; maxSteps--)
 		{
-			while (len_sq && len_sq < norm_sq2)
-			{
-				len_sq <<= 2; dx2 <<= 1; dy2 <<= 1;
+			/* Use an adapted version of Newton's algorithm to find the correct length 
+			 * This calculation converge quadratically towards the correct length
+			 * n(x+1) = (n(x) + len^2 / n(x)) / 2 
+			 */
+			len_n = (len + len2 / len) / 2;
+
+			/* We reach max precision when the last result is equal or greater than the previous one */ 
+			if(len_n >= len){
+				break;
 			}
-		}
-		else if (len_sq > norm_sq2)
-		{
-			while (len_sq && len_sq > norm_sq2)
-			{
-				len_sq >>= 2; dx2 >>= 1; dy2 >>= 1;
-			}
+
+			len = len_n;
 		}
 
-		/* Now find the divider div so that
-		 *     len_sq / div^2 == norm_sq   i.e.  div = sqrt(len_sq / norm_sq)
-		 *
-		 * This is done using bisection search to avoid the need for floating
-		 * point sqrt.
-		 *
-		 * Based on previous scaling, we know that
-		 *     len_sq / 2 <= norm_sq * 512   <=>   div <= sqrt(1024) = 32
-		 *     len_sq * 2 >= norm_sq * 512   <=>   div >= sqrt(256) = 16
+		/* Compute the normal vector using nx = dy * desired length / vector length
+		 * The solution is rounded to the nearest integer
 		 */
-		div = 24; step = 8;
-		best = 256;
-
-		for (;;)
-		{
-			dx = dx2 / div;
-			dy = dy2 / div;
-			len_sq = dx*dx + dy*dy;
-
-			delta = len_sq - norm_sq;
-
-			abs_delta = (delta >= 0) ? delta : -delta;
-
-			if (abs_delta < best)
-			{
-				*nx = dy;
-				*ny = -dx;
-				best = abs_delta;
-			}
-
-			if (delta > 0)
-				div += step;
-			else if (delta < 0)
-				div -= step;
-			else if (delta == 0)
-				break;
-
-			if (step == 0)
-				break;
-			else
-				step >>= 1; /* Do one round with step = 0 to calculate final result. */
-		}
+		*nx = rounding_div(dy * norm * 2, len);
+		*ny = rounding_div(-dx * norm * 2, len);
+		return;
 	}
 
 	void gdispGDrawThickLine(GDisplay *g, coord_t x0, coord_t y0, coord_t x1, coord_t y1, color_t color, coord_t width, bool_t round) {
@@ -3184,7 +3339,39 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 		#undef GD
 	}
 
+	/* Callback to render string boxes with word wrap. */
+	#if GDISP_NEED_TEXT_WORDWRAP
+		static bool mf_countline_callback(mf_str line, uint16_t count, void *state) {
+			uint16_t *linecount;
+			(void) line;
+			(void) count;
+
+			linecount = (uint16_t*)state;
+			(*linecount)++;
+
+			return TRUE;
+		}
+		static bool mf_drawline_callback(mf_str line, uint16_t count, void *state) {
+			wrapParameters_t* wrapParameters = (wrapParameters_t*)state;
+
+			mf_render_aligned(wrapParameters->font, wrapParameters->x, wrapParameters->y, wrapParameters->justify, line, count, drawcharglyph, wrapParameters->g);
+
+			wrapParameters->y += wrapParameters->font->line_height;
+			return TRUE;
+		}
+		static bool mf_fillline_callback(mf_str line, uint16_t count, void *state) {
+			wrapParameters_t* wrapParameters = (wrapParameters_t*)state;
+
+			mf_render_aligned(wrapParameters->font, wrapParameters->x, wrapParameters->y, wrapParameters->justify, line, count, fillcharglyph, wrapParameters->g);
+
+			wrapParameters->y += wrapParameters->font->line_height;
+			return TRUE;
+		}	
+	#endif
+
 	void gdispGDrawChar(GDisplay *g, coord_t x, coord_t y, uint16_t c, font_t font, color_t color) {
+		if (!font)
+			return;
 		MUTEX_ENTER(g);
 		g->t.font = font;
 		g->t.clipx0 = x;
@@ -3198,6 +3385,8 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	}
 
 	void gdispGFillChar(GDisplay *g, coord_t x, coord_t y, uint16_t c, font_t font, color_t color, color_t bgcolor) {
+		if (!font)
+			return;
 		MUTEX_ENTER(g);
 		g->p.cx = mf_character_width(font, c) + font->baseline_x;
 		g->p.cy = font->height;
@@ -3218,11 +3407,13 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	}
 
 	void gdispGDrawString(GDisplay *g, coord_t x, coord_t y, const char *str, font_t font, color_t color) {
+		if (!font)
+			return;
 		MUTEX_ENTER(g);
 		g->t.font = font;
 		g->t.clipx0 = x;
 		g->t.clipy0 = y;
-		g->t.clipx1 = x + mf_get_string_width(font, str, 0, 0);
+		g->t.clipx1 = x + mf_get_string_width(font, str, 0, 0) + font->baseline_x;
 		g->t.clipy1 = y + font->height;
 		g->t.color = color;
 
@@ -3232,8 +3423,10 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	}
 
 	void gdispGFillString(GDisplay *g, coord_t x, coord_t y, const char *str, font_t font, color_t color, color_t bgcolor) {
+		if (!font)
+			return;
 		MUTEX_ENTER(g);
-		g->p.cx = mf_get_string_width(font, str, 0, 0);
+		g->p.cx = mf_get_string_width(font, str, 0, 0) + font->baseline_x;
 		g->p.cy = font->height;
 		g->t.font = font;
 		g->t.clipx0 = g->p.x = x;
@@ -3253,7 +3446,15 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	}
 
 	void gdispGDrawStringBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, const char* str, font_t font, color_t color, justify_t justify) {
+		#if GDISP_NEED_TEXT_WORDWRAP
+			wrapParameters_t wrapParameters;
+			uint16_t nbrLines;
+		#endif
+
+		if (!font)
+			return;
 		MUTEX_ENTER(g);
+
 		g->t.font = font;
 		g->t.clipx0 = x;
 		g->t.clipy0 = y;
@@ -3273,16 +3474,40 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 			x += font->baseline_x;
 			break;
 		}
-		y += (cy+1 - font->height)/2;
 
-		mf_render_aligned(font, x, y, justify, str, 0, drawcharglyph, g);
+		/* Render */
+		#if GDISP_NEED_TEXT_WORDWRAP
+			wrapParameters.x = x;
+			wrapParameters.y = y;
+			wrapParameters.font = font;
+			wrapParameters.justify = justify;
+			wrapParameters.g = g;
+
+			// Count the number of lines
+			nbrLines = 0;
+			mf_wordwrap(font, cx, str, mf_countline_callback, &nbrLines);
+			wrapParameters.y += (cy+1 - nbrLines*font->height)/2;
+			
+			mf_wordwrap(font, cx, str, mf_fillline_callback, &wrapParameters);
+		#else
+			y += (cy+1 - font->height)/2;
+			mf_render_aligned(font, x, y, justify, str, 0, drawcharglyph, g);
+		#endif
 
 		autoflush(g);
 		MUTEX_EXIT(g);
 	}
 
 	void gdispGFillStringBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, const char* str, font_t font, color_t color, color_t bgcolor, justify_t justify) {
+		#if GDISP_NEED_TEXT_WORDWRAP
+			wrapParameters_t wrapParameters;
+			uint16_t nbrLines;
+		#endif
+
+		if (!font)
+			return;
 		MUTEX_ENTER(g);
+
 		g->p.cx = cx;
 		g->p.cy = cy;
 		g->t.font = font;
@@ -3310,10 +3535,26 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 				x += font->baseline_x;
 				break;
 			}
-			y += (cy+1 - font->height)/2;
 
 			/* Render */
-			mf_render_aligned(font, x, y, justify, str, 0, fillcharglyph, g);
+			#if GDISP_NEED_TEXT_WORDWRAP
+				wrapParameters.x = x;
+				wrapParameters.y = y;
+				wrapParameters.font = font;
+				wrapParameters.justify = justify;
+				wrapParameters.g = g;
+
+
+				// Count the number of lines
+				nbrLines = 0;
+				mf_wordwrap(font, cx, str, mf_countline_callback, &nbrLines);
+				wrapParameters.y += (cy+1 - nbrLines*font->height)/2;
+
+				mf_wordwrap(font, cx, str, mf_fillline_callback, &wrapParameters);
+			#else
+				y += (cy+1 - font->height)/2;
+				mf_render_aligned(font, x, y, justify, str, 0, fillcharglyph, g);
+			#endif
 		}
 
 		autoflush(g);
@@ -3321,6 +3562,8 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	}
 
 	coord_t gdispGetFontMetric(font_t font, fontmetric_t metric) {
+		if (!font)
+			return 0;
 		/* No mutex required as we only read static data */
 		switch(metric) {
 		case fontHeight:			return font->height;
@@ -3329,21 +3572,33 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 		case fontCharPadding:		return 0;
 		case fontMinWidth:			return font->min_x_advance;
 		case fontMaxWidth:			return font->max_x_advance;
+		case fontBaselineX:			return font->baseline_x;
+		case fontBaselineY:			return font->baseline_y;
 		}
 		return 0;
 	}
 
 	coord_t gdispGetCharWidth(char c, font_t font) {
+		if (!font)
+			return 0;
 		/* No mutex required as we only read static data */
 		return mf_character_width(font, c);
 	}
 
-	coord_t gdispGetStringWidth(const char* str, font_t font) {
-		if (!str)
+	coord_t gdispGetStringWidthCount(const char* str, font_t font, uint16_t count) {
+		if (!str || !font)
 			return 0;
 
-		/* No mutex required as we only read static data */
-		return mf_get_string_width(font, str, 0, 0);
+		// No mutex required as we only read static data
+		#if GDISP_NEED_TEXT_KERNING
+			return mf_get_string_width(font, str, count, TRUE);
+		#else
+			return mf_get_string_width(font, str, count, FALSE);
+		#endif
+	}
+
+	coord_t gdispGetStringWidth(const char* str, font_t font) {
+		return gdispGetStringWidthCount(str, font, 0);
 	}
 #endif
 

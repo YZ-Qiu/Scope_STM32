@@ -19,7 +19,7 @@
 #ifndef _GMISC_H
 #define _GMISC_H
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 /*===========================================================================*/
 /* Type definitions                                                          */
@@ -75,12 +75,14 @@ typedef int32_t	fixed;
 /**
  * @brief   The famous number pi
  */
-//#define PI	3.1415926535897932384626433832795028841971693993751
+#ifndef GFX_PI
+	#define GFX_PI	3.1415926535897932384626433832795028841971693993751
+#endif
 
 /**
  * @brief   pi as a fixed point
  */
-#define FIXED_PI	FP2FIXED(PI)
+#define FIXED_PI	FP2FIXED(GFX_PI)
 
 /*===========================================================================*/
 /* External declarations.                                                    */
@@ -132,6 +134,8 @@ extern "C" {
 #endif
 
 #if GMISC_NEED_FASTTRIG || defined(__DOXYGEN__)
+		#include <math.h>
+
 		extern const double sintabledouble[];
 
 		/**
@@ -459,6 +463,25 @@ extern "C" {
 		void gmiscMatrixFixed2DApplyRotation(MatrixFixed2D *dst, const MatrixFixed2D *src, int angle);
 	#endif
 #endif
+
+
+#if GMISC_NEED_HITTEST_POLY || defined(__DOXYGEN__)
+	/**
+	 * @brief	Check whether a point is inside or on the edge of a polygon
+	 * @pre		Requires GFX_USE_GMISC and GMISC_NEED_HITTEST_POLY
+	 *
+	 * @note	This function works both with convex and concave polygons
+	 *
+	 * @param[in] pntarray		The array of points that form the polygon
+	 * @param[in] cnt			The number of points in the point array @p pntarray
+	 * @param[in] p				The point to test
+	 *
+	 * @return	@p TRUE if the point @p p is inside or on the edge of the polygon @p pntarray, @p FALSE otherwise.
+	 *
+	 * @api
+	 */
+	bool_t gmiscHittestPoly(const point *pntarray, unsigned cnt, const point *p);
+#endif // GMISC_NEED_HITTEST_POLY
 
 #ifdef __cplusplus
 }

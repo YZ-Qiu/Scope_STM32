@@ -10,7 +10,7 @@
 / * The Petit FatFs module is a free software and there is NO WARRANTY.
 / * No restriction on use. You can use, modify and redistribute it for
 /   personal, non-profit or commercial products UNDER YOUR RESPONSIBILITY.
-/ * uRedistributions of source code must retain the above copyright notice.
+/ * Redistributions of source code must retain the above copyright notice.
 /
 /-----------------------------------------------------------------------------/
 / Jun 15,'09  R0.01a  First release.

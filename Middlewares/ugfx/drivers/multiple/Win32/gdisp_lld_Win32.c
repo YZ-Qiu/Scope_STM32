@@ -14,7 +14,7 @@
 
 #define GDISP_DRIVER_VMT			GDISPVMT_Win32
 #include "gdisp_lld_config.h"
-#include "src/gdisp/gdisp_driver.h"
+#include "../../../src/gdisp/gdisp_driver.h"
 
 // Configuration parameters for this driver
 #ifndef GDISP_SCREEN_WIDTH
@@ -61,9 +61,9 @@
 #define DISPLAY_Y_OFFSET		50
 
 // Oops - name clashes with Win32 symbols
-#undef uRed
-#undef uGreen
-#undef uBlue
+#undef Red
+#undef Green
+#undef Blue
 
 #define WIN32_LEAN_AND_MEAN
 #include <stdio.h>
@@ -80,18 +80,18 @@
 	#define GDISP_FLG_WRAPPED			(GDISP_FLG_DRIVER<<4)
 #endif
 
-#if GINPUT_NEED_TOGGLE
+#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 	/* Include toggle support code */
-	#include "src/ginput/ginput_driver_toggle.h"
+	#include "../../../src/ginput/ginput_driver_toggle.h"
 
 	// Hack until toggle use gdriver.
 	static GDisplay *toggleWindow;
 #endif
 
-#if GINPUT_NEED_MOUSE
+#if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
 	// Include mouse support code
 	#define GMOUSE_DRIVER_VMT		GMOUSEVMT_Win32
-	#include "src/ginput/ginput_driver_mouse.h"
+	#include "../../../src/ginput/ginput_driver_mouse.h"
 
 	// Forward definitions
 	static bool_t Win32MouseInit(GMouse *m, unsigned driverinstance);
@@ -130,16 +130,16 @@
 	}};
 #endif
 
-#if GINPUT_NEED_KEYBOARD
+#if GFX_USE_GINPUT && GINPUT_NEED_KEYBOARD
 	#define GKEYBOARD_DRIVER_VMT		GKEYBOARDVMT_Win32
-	#include "src/ginput/ginput_driver_keyboard.h"
+	#include "../../../src/ginput/ginput_driver_keyboard.h"
 
 	#if !GKEYBOARD_WIN32_NO_LAYOUT
 		#if GKEYBOARD_LAYOUT_OFF
 			#error "The Win32 keyboard driver is using the layout engine. Please set GKEYBOARD_LAYOUT_OFF=FALSE or GKEYBOARD_WIN32_NO_LAYOUT=TRUE."
 		#endif
 
-		#include "src/ginput/ginput_keyboard_microcode.h"
+		#include "../../../src/ginput/ginput_keyboard_microcode.h"
 
 		// Forward definitions
 		extern uint8_t	GKEYBOARD_WIN32_DEFAULT_LAYOUT[];
@@ -416,12 +416,13 @@
 static DWORD			winThreadId;
 static volatile bool_t	QReady;
 static HANDLE			drawMutex;
+static HWND				hWndParent = 0;
 
 /*===========================================================================*/
 /* Driver local routines    .                                                */
 /*===========================================================================*/
 
-#if GINPUT_NEED_TOGGLE
+#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 	#define WIN32_BUTTON_AREA		16
 #else
 	#define WIN32_BUTTON_AREA		0
@@ -434,12 +435,14 @@ typedef struct winPriv {
 	HDC				dcBuffer;
 	HBITMAP			dcBitmap;
 	HBITMAP 		dcOldBitmap;
-	#if GINPUT_NEED_MOUSE
+	#if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
 		coord_t		mousex, mousey;
 		uint16_t	mousebuttons;
 		GMouse		*mouse;
+		bool_t		mouseenabled;
+		void (*capfn)(HWND hWnd, GDisplay *g, uint16_t buttons, coord_t x, coord_t y);
 	#endif
-	#if GINPUT_NEED_TOGGLE
+	#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 		uint8_t		toggles;
 	#endif
 	#if GDISP_HARDWARE_STREAM_WRITE || GDISP_HARDWARE_STREAM_READ
@@ -448,6 +451,28 @@ typedef struct winPriv {
 	#endif
 } winPriv;
 
+void gfxEmulatorSetParentWindow(void *hwnd) {
+	hWndParent = (HWND)hwnd;
+}
+
+#if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
+	void gfxEmulatorMouseInject(GDisplay *g, uint16_t buttons, coord_t x, coord_t y) {
+		winPriv *		priv;
+		
+		priv = (winPriv *)g->priv;
+		priv->mousebuttons = buttons;
+		priv->mousex = x;
+		priv->mousey = y;
+		if ((gmvmt(priv->mouse)->d.flags & GMOUSE_VFLG_NOPOLL))		// For normal setup this is always TRUE
+			_gmouseWakeup(priv->mouse);
+	}
+	void gfxEmulatorMouseEnable(GDisplay *g, bool_t enabled) {
+		((winPriv *)g->priv)->mouseenabled = enabled;
+	}
+	void gfxEmulatorMouseCapture(GDisplay *g, void (*capfn)(HWND hWnd, GDisplay *g, uint16_t buttons, coord_t x, coord_t y)) {
+		((winPriv *)g->priv)->capfn = capfn;
+	}
+#endif
 
 static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 {
@@ -455,7 +480,10 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT		ps;
 	GDisplay *		g;
 	winPriv *		priv;
-	#if GINPUT_NEED_TOGGLE
+	#if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
+		uint16_t	btns;
+	#endif
+	#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 		HBRUSH		hbrOn, hbrOff;
 		HPEN		pen;
 		RECT		rect;
@@ -484,7 +512,7 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 		g->flags |= GDISP_FLG_READY;
 		break;
 
-	#if GINPUT_NEED_MOUSE || GINPUT_NEED_TOGGLE
+	#if GFX_USE_GINPUT && (GINPUT_NEED_MOUSE || GINPUT_NEED_TOGGLE)
 		case WM_LBUTTONDOWN:
 			// Get our GDisplay structure
 			g = (GDisplay *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
@@ -493,7 +521,8 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 			// Handle mouse down on the window
 			#if GINPUT_NEED_MOUSE
 				if ((coord_t)HIWORD(lParam) < GDISP_SCREEN_HEIGHT) {
-					priv->mousebuttons |= GINPUT_MOUSE_BTN_LEFT;
+					btns = priv->mousebuttons;
+					btns |= GINPUT_MOUSE_BTN_LEFT;
 					goto mousemove;
 				}
 			#endif
@@ -542,19 +571,21 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 			// Handle mouse up on the window
 			#if GINPUT_NEED_MOUSE
 				if ((coord_t)HIWORD(lParam) < GDISP_SCREEN_HEIGHT) {
-					priv->mousebuttons &= ~GINPUT_MOUSE_BTN_LEFT;
+					btns = priv->mousebuttons;
+					btns &= ~GINPUT_MOUSE_BTN_LEFT;
 					goto mousemove;
 				}
 			#endif
 			break;
 	#endif
 
-	#if GINPUT_NEED_MOUSE
+	#if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
 		case WM_MBUTTONDOWN:
 			g = (GDisplay *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			priv = (winPriv *)g->priv;
 			if ((coord_t)HIWORD(lParam) < GDISP_SCREEN_HEIGHT) {
-				priv->mousebuttons |= GINPUT_MOUSE_BTN_MIDDLE;
+				btns = priv->mousebuttons;
+				btns |= GINPUT_MOUSE_BTN_MIDDLE;
 				goto mousemove;
 			}
 			break;
@@ -562,7 +593,8 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 			g = (GDisplay *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			priv = (winPriv *)g->priv;
 			if ((coord_t)HIWORD(lParam) < GDISP_SCREEN_HEIGHT) {
-				priv->mousebuttons &= ~GINPUT_MOUSE_BTN_MIDDLE;
+				btns = priv->mousebuttons;
+				btns &= ~GINPUT_MOUSE_BTN_MIDDLE;
 				goto mousemove;
 			}
 			break;
@@ -570,7 +602,8 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 			g = (GDisplay *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			priv = (winPriv *)g->priv;
 			if ((coord_t)HIWORD(lParam) < GDISP_SCREEN_HEIGHT) {
-				priv->mousebuttons |= GINPUT_MOUSE_BTN_RIGHT;
+				btns = priv->mousebuttons;
+				btns |= GINPUT_MOUSE_BTN_RIGHT;
 				goto mousemove;
 			}
 			break;
@@ -578,7 +611,8 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 			g = (GDisplay *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			priv = (winPriv *)g->priv;
 			if ((coord_t)HIWORD(lParam) < GDISP_SCREEN_HEIGHT) {
-				priv->mousebuttons &= ~GINPUT_MOUSE_BTN_RIGHT;
+				btns = priv->mousebuttons;
+				btns &= ~GINPUT_MOUSE_BTN_RIGHT;
 				goto mousemove;
 			}
 			break;
@@ -587,15 +621,22 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 			priv = (winPriv *)g->priv;
 			if ((coord_t)HIWORD(lParam) >= GDISP_SCREEN_HEIGHT)
 				break;
+			btns = priv->mousebuttons;
+
 		mousemove:
-			priv->mousex = (coord_t)LOWORD(lParam);
-			priv->mousey = (coord_t)HIWORD(lParam);
-			if ((gmvmt(priv->mouse)->d.flags & GMOUSE_VFLG_NOPOLL))		// For normal setup this is always TRUE
-				_gmouseWakeup(priv->mouse);
+			if (priv->capfn)
+				priv->capfn(hWnd, g, btns, (coord_t)LOWORD(lParam), (coord_t)HIWORD(lParam));
+			if (priv->mouseenabled) {
+				priv->mousebuttons = btns;
+				priv->mousex = (coord_t)LOWORD(lParam);
+				priv->mousey = (coord_t)HIWORD(lParam);
+				if ((gmvmt(priv->mouse)->d.flags & GMOUSE_VFLG_NOPOLL))		// For normal setup this is always TRUE
+					_gmouseWakeup(priv->mouse);
+			}
 			break;
 	#endif
 
-	#if GINPUT_NEED_KEYBOARD
+	#if GFX_USE_GINPUT && GINPUT_NEED_KEYBOARD
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
 		case WM_KEYDOWN:
@@ -653,7 +694,7 @@ static LRESULT myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 			priv->dcBuffer, ps.rcPaint.left, ps.rcPaint.top, SRCCOPY);
 
 		// Paint the toggle area
-		#if GINPUT_NEED_TOGGLE
+		#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 			if (ps.rcPaint.bottom >= GDISP_SCREEN_HEIGHT && (g->flags & GDISP_FLG_HASTOGGLE)) {
 				pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 				hbrOn = CreateSolidBrush(RGB(0, 0, 255));
@@ -750,7 +791,7 @@ static DWORD WINAPI WindowThread(void *param) {
 				// Set the window rectangle
 				rect.top = 0; rect.bottom = g->g.Height;
 				rect.left = 0; rect.right = g->g.Width;
-				#if GINPUT_NEED_TOGGLE
+				#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 					if ((g->flags & GDISP_FLG_HASTOGGLE))
 						rect.bottom += WIN32_BUTTON_AREA;
 				#endif
@@ -758,7 +799,8 @@ static DWORD WINAPI WindowThread(void *param) {
 
 				// Create the window
 				msg.hwnd = CreateWindow(APP_NAME, "", WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_BORDER, msg.wParam*DISPLAY_X_OFFSET, msg.wParam*DISPLAY_Y_OFFSET,
-								rect.right-rect.left, rect.bottom-rect.top, 0, 0,
+								rect.right-rect.left, rect.bottom-rect.top,
+								hWndParent, 0,
 								GetModuleHandle(0), g);
 				assert(msg.hwnd != 0);
 
@@ -809,7 +851,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 	g->g.Height = GDISP_SCREEN_HEIGHT;
 
 	// Turn on toggles for the first GINPUT_TOGGLE_CONFIG_ENTRIES windows
-	#if GINPUT_NEED_TOGGLE
+	#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 		if (g->controllerdisplay < GINPUT_TOGGLE_CONFIG_ENTRIES) {
 			g->flags |= GDISP_FLG_HASTOGGLE;
 			toggleWindow = g;
@@ -835,7 +877,8 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 		Sleep(1);
 
 	// Create the associated mouse
-	#if GINPUT_NEED_MOUSE
+	#if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
+		priv->mouseenabled = hWndParent ? FALSE : TRUE;
 		priv->mouse = (GMouse *)gdriverRegister((const GDriverVMT const *)GMOUSE_DRIVER_VMT, g);
 	#endif
 
@@ -1237,9 +1280,9 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 		bmpInfo.bV4Planes = 1;
 		bmpInfo.bV4BitCount = COLOR_TYPE_BITS;
 		bmpInfo.bV4AlphaMask = 0;
-		bmpInfo.bV4uRedMask		= RGB2COLOR(255,0,0);
-		bmpInfo.bV4uGreenMask	= RGB2COLOR(0,255,0);
-		bmpInfo.bV4uBlueMask		= RGB2COLOR(0,0,255);
+		bmpInfo.bV4RedMask		= RGB2COLOR(255,0,0);
+		bmpInfo.bV4GreenMask	= RGB2COLOR(0,255,0);
+		bmpInfo.bV4BlueMask		= RGB2COLOR(0,0,255);
 		bmpInfo.bV4V4Compression = BI_BITFIELDS;
 		bmpInfo.bV4XPelsPerMeter = 3078;
 		bmpInfo.bV4YPelsPerMeter = 3078;
@@ -1501,7 +1544,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 	}
 #endif
 
-#if GINPUT_NEED_MOUSE
+#if GFX_USE_GINPUT && GINPUT_NEED_MOUSE
 	static bool_t Win32MouseInit(GMouse *m, unsigned driverinstance) {
 		(void)	m;
 		(void)	driverinstance;
@@ -1550,7 +1593,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 	}
 #endif /* GINPUT_NEED_MOUSE */
 
-#if GINPUT_NEED_KEYBOARD
+#if GFX_USE_GINPUT && GINPUT_NEED_KEYBOARD
 	static bool_t Win32KeyboardInit(GKeyboard *k, unsigned driverinstance) {
 		(void)	driverinstance;
 
@@ -1578,7 +1621,7 @@ LLDSPEC bool_t gdisp_lld_init(GDisplay *g) {
 	}
 #endif
 
-#if GINPUT_NEED_TOGGLE
+#if GFX_USE_GINPUT && GINPUT_NEED_TOGGLE
 	#if GINPUT_TOGGLE_CONFIG_ENTRIES > 1
 		#error "GDISP Win32: GINPUT_TOGGLE_CONFIG_ENTRIES must be 1 until Toggles can use GDriver"
 	#endif

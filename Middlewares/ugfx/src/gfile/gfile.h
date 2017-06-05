@@ -20,7 +20,6 @@
 #define _GFILE_H
 
 #include "../../gfx.h"
-#include <stdio.h>
 
 #if GFX_USE_GFILE || defined(__DOXYGEN__)
 

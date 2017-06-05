@@ -27,7 +27,7 @@
 #ifndef _GDISP_H
 #define _GDISP_H
 
-#include "gfx.h"
+#include "../../gfx.h"
 
 /* This type definition is defined here as it gets used in other gfx sub-systems even
  * if GFX_USE_GDISP is FALSE.
@@ -45,31 +45,69 @@ typedef int16_t	coord_t;
 /*===========================================================================*/
 
 /**
+ * @struct point
  * @brief   Type for a 2D point on the screen.
  */
-typedef struct point { coord_t x, y; } point, point_t;
+typedef struct point {
+	coord_t x;		/**< The x coordinate of the point. */
+	coord_t y;		/**< The y coordinate of the point. */
+} point, point_t;
+
 /**
+ * @enum justify
  * @brief   Type for the text justification.
  */
-typedef enum justify { justifyLeft=0, justifyCenter=1, justifyRight=2 } justify_t;
+typedef enum justify {
+	justifyLeft = 0,		/**< Justify Left */
+	justifyCenter = 1,		/**< Justify Center */
+	justifyRight = 2		/**< Justify Right */
+} justify_t;
+
 /**
+ * @enum fontmetric
  * @brief   Type for the font metric.
  */
-typedef enum fontmetric { fontHeight, fontDescendersHeight, fontLineSpacing, fontCharPadding, fontMinWidth, fontMaxWidth } fontmetric_t;
+typedef enum fontmetric {
+	fontHeight,				/**< The height of the font */
+	fontDescendersHeight,	/**< The descenders height */
+	fontLineSpacing,		/**< The line spacing */
+	fontCharPadding,		/**< The char padding */
+	fontMinWidth,			/**< The minimum width */
+	fontMaxWidth,			/**< The maximum width */
+	fontBaselineX,			/**< The base line in x direction */
+	fontBaselineY			/**< The base line in y direction */
+} fontmetric_t;
+
 /**
  * @brief   The type of a font.
  */
 typedef const struct mf_font_s* font_t;
+
 /**
+ * @enum 	orientation
  * @brief   Type for the screen orientation.
  * @note	GDISP_ROTATE_LANDSCAPE and GDISP_ROTATE_PORTRAIT are internally converted to the
  * 			most appropriate other orientation.
  */
-typedef enum orientation { GDISP_ROTATE_0=0, GDISP_ROTATE_90=90, GDISP_ROTATE_180=180, GDISP_ROTATE_270=270, GDISP_ROTATE_PORTRAIT=1000,  GDISP_ROTATE_LANDSCAPE=1001 } orientation_t;
+typedef enum orientation {
+	GDISP_ROTATE_0 = 0,				/**< Don't rotate. This is the displays native orientation. */
+	GDISP_ROTATE_90 = 90,			/**< Rotate by 90 degrees absolute to the native rotation. */
+	GDISP_ROTATE_180 = 180,			/**< Rotate by 180 degrees absolute to the native rotation. */
+	GDISP_ROTATE_270 = 270,			/**< Rotate by 270 degrees absolute to the native rotation. */
+	GDISP_ROTATE_PORTRAIT = 1000,	/**< Put the display into portrait mode. */
+	GDISP_ROTATE_LANDSCAPE = 1001	/**< Put the display into landscape mode. */
+} orientation_t;
+
 /**
+ * @enum 	powermode
  * @brief   Type for the available power modes for the screen.
  */
-typedef enum powermode { powerOff, powerSleep, powerDeepSleep, powerOn } powermode_t;
+typedef enum powermode {
+	powerOff,						/**< Turn the display off. */
+	powerSleep,						/**< Put the display into sleep mode. */
+	powerDeepSleep,					/**< Put the display into deep-sleep mode. */
+	powerOn							/**< Turn the display on. */
+} powermode_t;
 
 /*
  * Our black box display structure.
@@ -79,7 +117,7 @@ typedef struct GDisplay		GDisplay;
 /**
  * @brief   The default screen to use for the gdispXXXX calls.
  * @note	This is set by default to the first display in the system. You can change
- * 			it by calling @p gdispGSetDisplay().
+ * 			it by calling @p gdispSetDisplay().
  */
 extern GDisplay	*GDISP;
 
@@ -115,6 +153,7 @@ extern GDisplay	*GDISP;
 	// Pull in the default hardware configuration for a single controller.
 	// If we have multiple controllers the settings must be set in the
 	// users gfxconf.h file.
+	// Use the compiler include path to find it
 	#include "gdisp_lld_config.h"
 
 	// Unless the user has specified a specific pixel format, use
@@ -535,6 +574,24 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	#define gdispFillCircle(x,y,r,c)						gdispGFillCircle(GDISP,x,y,r,c)
 #endif
 
+#if GDISP_NEED_DUALCIRCLE || defined(__DOXYGEN__)
+	/**
+	 * @brief   Draw two filled circles with the same centre.
+	 * @pre		GDISP_NEED_DUALCIRCLE must be TRUE in your gfxconf.h
+	 *
+	 * @param[in] g 		The display to use
+	 * @param[in] x,y		The center of the circle
+	 * @param[in] radius1	The radius of the larger circle
+	 * @param[in] color1	The color to use for the larger circle
+	 * @param[in] radius2	The radius of the smaller circle
+	 * @param[in] color2	The color to use for the smaller circle
+	 *
+	 * @api
+	 */
+	void gdispGFillDualCircle(GDisplay *g, coord_t x, coord_t y, coord_t radius1, color_t color1, coord_t radius2, color_t color2);
+	#define gdispFillDualCircle(x,y,r1,c1,r2,c2)			gdispGFillDualCircle(GDISP,x,y,r1,c1,r2,c2)
+#endif
+
 /* Ellipse Functions */
 
 #if GDISP_NEED_ELLIPSE || defined(__DOXYGEN__)
@@ -629,16 +686,16 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 #endif
 
 #if GDISP_NEED_ARC || defined(__DOXYGEN__)
-	/*
+	/**
 	 * @brief	Draw an arc.
 	 * @pre		GDISP_NEED_ARC must be TRUE in your gfxconf.h
 	 *
-	 * @param[in] g 		The display to use
-	 * @param[in] x0,y0		The center point
-	 * @param[in] radius	The radius of the arc
-	 * @param[in] start		The start angle (0 to 360)
-	 * @param[in] end		The end angle (0 to 360)
-	 * @param[in] color		The color of the arc
+	 * @param[in] g 			The display to use
+	 * @param[in] x,y			The center point
+	 * @param[in] radius		The radius of the arc
+	 * @param[in] startangle	The start angle (0 to 360)
+	 * @param[in] endangle		The end angle (0 to 360)
+	 * @param[in] color			The color of the arc
 	 *
 	 * @note		If you are just doing 45 degree angles consider using @p gdispDrawArcSectors() instead.
 	 * @note		This routine requires trig support. It can either come from your C runtime library
@@ -654,16 +711,41 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	void gdispGDrawArc(GDisplay *g, coord_t x, coord_t y, coord_t radius, coord_t startangle, coord_t endangle, color_t color);
 	#define gdispDrawArc(x,y,r,s,e,c)						gdispGDrawArc(GDISP,x,y,r,s,e,c)
 
-	/*
+	/**
+	 * @brief	Draw a thick arc.
+	 * @pre		GDISP_NEED_ARC must be TRUE in your gfxconf.h
+	 *
+	 * @param[in] g 			The display to use
+	 * @param[in] xc,yc			The center point
+	 * @param[in] startradius	The inner radius of the thick arc
+	 * @param[in] endradius		The outer radius of the thick arc
+	 * @param[in] startangle	The start angle (0 to 360)
+	 * @param[in] endangle		The end angle (0 to 360)
+	 * @param[in] color			The color of the arc
+	 *
+	 * @note		This routine requires trig support. It can either come from your C runtime library
+	 * 				cos() and sin() which requires floating point support (and is slow), or you can define GFX_USE_GMISC
+	 * 				and either GMISC_NEED_FIXEDTRIG or GMISC_NEED_FASTTRIG.
+	 * 				GMISC_NEED_FASTTRIG uses table based floating point trig operations.
+	 * 				GMISC_NEED_FIXEDTRIG uses fixed point integer trig operations.
+	 * 				Note accuracy on both the table based options are more than adequate for the one degree
+	 * 				resolution provided by these arc routines. Both are much faster than your C runtime library.
+	 *
+	 * @api
+	 */
+	void gdispGDrawThickArc(GDisplay *g, coord_t xc, coord_t yc, coord_t startradius, coord_t endradius, coord_t startangle, coord_t endangle, color_t color);
+	#define gdispDrawThickArc(x,y,rs,re,s,e,c)						gdispGDrawThickArc(GDISP,x,y,rs,re,s,e,c)
+	
+	/**
 	 * @brief	Draw a filled arc.
 	 * @pre		GDISP_NEED_ARC must be TRUE in your gfxconf.h
 	 *
-	 * @param[in] g 		The display to use
-	 * @param[in] x0,y0		The center point
-	 * @param[in] radius	The radius of the arc
-	 * @param[in] start		The start angle (0 to 360)
-	 * @param[in] end		The end angle (0 to 360)
-	 * @param[in] color		The color of the arc
+	 * @param[in] g 			The display to use
+	 * @param[in] x,y			The center point
+	 * @param[in] radius		The radius of the arc
+	 * @param[in] startangle	The start angle (0 to 360)
+	 * @param[in] endangle		The end angle (0 to 360)
+	 * @param[in] color			The color of the arc
 	 *
 	 * @note		If you are just doing 45 degree angles consider using @p gdispFillArcSectors() instead.
 	 * @note		This routine requires trig support. It can either come from your C runtime library
@@ -704,7 +786,7 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	 * @brief   Scroll vertically a section of the screen.
 	 * @pre		GDISP_NEED_SCROLL must be set to TRUE in gfxconf.h
 	 * @note    Optional.
-	 * @note    If lines is >= cy, it is equivelent to a area fill with bgcolor.
+	 * @note    If lines is >= cy, it is equivelent to an area fill with bgcolor.
 	 *
 	 * @param[in] g 		The display to use
 	 * @param[in] x, y		The start of the area to be scrolled
@@ -941,7 +1023,22 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	coord_t gdispGetCharWidth(char c, font_t font);
 
 	/**
-	 * @brief   Get the pixel width of a string.
+	 * @brief   Get the pixel width of a string of a given character length.
+	 * @return  The width of the string in pixels.
+	 * @pre		GDISP_NEED_TEXT must be TRUE in your gfxconf.h
+	 *
+	 * @note	Passing 0 to count has the same effect as calling gdispGetStringWidt()
+	 *
+	 * @param[in] str     The string to measure
+	 * @param[in] font    The font to use
+	 * @param[in] count   The number of characters to take into account
+	 *
+	 * @api
+	 */
+	coord_t gdispGetStringWidthCount(const char* str, font_t font, uint16_t count);
+
+	/**
+	 * @brief   Get the pixel width of an entire string.
 	 * @return  The width of the string in pixels.
 	 * @pre		GDISP_NEED_TEXT must be TRUE in your gfxconf.h
 	 *
@@ -981,6 +1078,8 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	 * @details	Allocates memory for new font metadata using gfxAlloc, remember to close font after use!
 	 * @return	A new font or NULL if out of memory.
 	 * @pre		GDISP_NEED_TEXT must be TRUE in your gfxconf.h
+	 * @note	A scaled font should probably not be added to the font list as it will prevent the
+	 *			unscaled font of the same name being found as it will be the scaled version that will be found.
 	 *
 	 * @param[in] font	The base font to use.
 	 * @param[in] scale_x	The scale factor in horizontal direction.
@@ -998,6 +1097,17 @@ void gdispGDrawBox(GDisplay *g, coord_t x, coord_t y, coord_t cx, coord_t cy, co
 	 * @api
 	 */
 	const char *gdispGetFontName(font_t font);
+	
+	/**
+	 * @brief	Add a font permanently to the font list.
+	 * @returns	TRUE on success. Reasons it may fail: out of memory, if it is already on the list, it is not a font loaded in RAM.
+	 * @pre		GDISP_NEED_TEXT must be TRUE in your gfxconf.h
+	 *
+	 * @param[in] font		The font to add to the font list.
+	 *
+	 * @api
+	 */
+	bool_t gdispAddFont(font_t font);
 #endif
 
 /* Extra Arc Functions */
