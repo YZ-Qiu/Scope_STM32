@@ -7,6 +7,14 @@
 #include "colors.h"
 #include "widgetstyles.h"
 #include "gui.h"
+#include "gwin_widget.h"
+
+
+#define T_Div_Button_ID 0
+#define V_Div_Button_ID 1
+
+#define T_Div_List_ID 0
+#define V_Div_List_ID 1
 
 // GListeners
 GListener glistener;
@@ -23,7 +31,7 @@ GHandle Label_CH;
 GHandle X_Acontent_Label;
 GHandle X_Bcontent_Label;
 GHandle T_Div_Button;
-GHandle V_Div_Button_;
+GHandle V_Div_Button;
 GHandle Y_Acontent_Label;
 GHandle Y_Bcontent_Label;
 GHandle X_Fcontent_Label;
@@ -79,12 +87,12 @@ static void createPagePage0(void)
 
 	// Create label widget: T_Div_Label
 	wi.g.show = TRUE;
-	wi.g.x = 40;
+	wi.g.x = 30;
 	wi.g.y = 15;
 	wi.g.width = 40;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "      us";
+	wi.text = "10us";
 	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &divc;
@@ -95,12 +103,12 @@ static void createPagePage0(void)
 
 	// Create label widget: V_Div_Label
 	wi.g.show = TRUE;
-	wi.g.x = 80;
+	wi.g.x = 70;
 	wi.g.y = 15;
-	wi.g.width = 40;
+	wi.g.width = 50;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "       V";
+	wi.text = "0.5V";
 	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &divc;
@@ -169,7 +177,7 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 0;
 	wi.g.y = 0;
-	wi.g.width = 40;
+	wi.g.width = 30;
 	wi.g.height = 30;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "CH1";
@@ -178,7 +186,7 @@ static void createPagePage0(void)
 	wi.customStyle = &divc;
 	Label_CH = gwinLabelCreate(0, &wi);
 	gwinLabelSetBorder(Label_CH, FALSE);
-	gwinSetFont(Label_CH, dejavu_sans_16);
+	gwinSetFont(Label_CH, dejavu_sans_12);
 	gwinRedraw(Label_CH);
 
 	// Create label widget: X_Acontent_Label
@@ -215,7 +223,7 @@ static void createPagePage0(void)
 
 	// create button widget: T_Div_Button
 	wi.g.show = TRUE;
-	wi.g.x = 40;
+	wi.g.x = 30;
 	wi.g.y = 0;
 	wi.g.width = 40;
 	wi.g.height = 15;
@@ -225,23 +233,25 @@ static void createPagePage0(void)
 	wi.customParam = 0;
 	wi.customStyle = &divc;
 	T_Div_Button = gwinButtonCreate(0, &wi);
+	gwinSetTag(V_Div_Button,T_Div_Button_ID);
 	gwinSetFont(T_Div_Button, dejavu_sans_12);
 	gwinRedraw(T_Div_Button);
 
-	// create button widget: V_Div_Button_
+	// create button widget: V_Div_Button
 	wi.g.show = TRUE;
-	wi.g.x = 80;
+	wi.g.x = 70;
 	wi.g.y = 0;
-	wi.g.width = 40;
+	wi.g.width = 50;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "V/Div";
 	wi.customDraw = gwinButtonDraw_Normal;
 	wi.customParam = 0;
 	wi.customStyle = &divc;
-	V_Div_Button_ = gwinButtonCreate(0, &wi);
-	gwinSetFont(V_Div_Button_, dejavu_sans_12);
-	gwinRedraw(V_Div_Button_);
+	V_Div_Button = gwinButtonCreate(0, &wi);
+	gwinSetTag(V_Div_Button,V_Div_Button_ID);
+	gwinSetFont(V_Div_Button, dejavu_sans_12);
+	gwinRedraw(V_Div_Button);
 
 	// Create label widget: Y_Acontent_Label
 	wi.g.show = TRUE;
@@ -485,9 +495,9 @@ static void createPagePage0(void)
 
 	// Create list widget: V_Div_List
 	wi.g.show = FALSE;
-	wi.g.x = 80;
+	wi.g.x = 70;
 	wi.g.y = 30;
-	wi.g.width = 40;
+	wi.g.width = 50;
 	wi.g.height = 70;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "List1";
@@ -495,26 +505,23 @@ static void createPagePage0(void)
 	wi.customParam = 0;
 	wi.customStyle = &divc;
 	V_Div_List = gwinListCreate(0, &wi, FALSE);
+	gwinSetTag(V_Div_List,V_Div_List_ID);
 	gwinListSetScroll(V_Div_List, scrollSmooth);
 	gwinSetFont(V_Div_List, dejavu_sans_12);
 	gwinRedraw(V_Div_List);
-	gwinListAddItem(V_Div_List, "0.5", FALSE);
-	gwinListAddItem(V_Div_List, "Item2", FALSE);
-	gwinListAddItem(V_Div_List, "Item3", FALSE);
-	gwinListAddItem(V_Div_List, "Item4", FALSE);
-	gwinListAddItem(V_Div_List, "Item5", FALSE);
-	gwinListAddItem(V_Div_List, "Item6", FALSE);
-	
+	gwinListAddItem(V_Div_List, "0.50V", FALSE);
+	gwinListAddItem(V_Div_List, "0.25V", FALSE);
+	gwinListAddItem(V_Div_List, "0.10V", FALSE);
+	gwinListAddItem(V_Div_List, "0.05V", FALSE);
+
 	gwinListSetSelected(V_Div_List, 0, FALSE);
 	gwinListSetSelected(V_Div_List, 1, FALSE);
 	gwinListSetSelected(V_Div_List, 2, FALSE);
 	gwinListSetSelected(V_Div_List, 3, FALSE);
-	gwinListSetSelected(V_Div_List, 4, FALSE);
-	gwinListSetSelected(V_Div_List, 5, FALSE);
 	
 	// Create list widget: T_Div_List
 	wi.g.show = FALSE;
-	wi.g.x = 40;
+	wi.g.x = 30;
 	wi.g.y = 30;
 	wi.g.width = 40;
 	wi.g.height = 70;
@@ -524,15 +531,16 @@ static void createPagePage0(void)
 	wi.customParam = 0;
 	wi.customStyle = &divc;
 	T_Div_List = gwinListCreate(0, &wi, FALSE);
+	gwinSetTag(T_Div_List,T_Div_List_ID);
 	gwinListSetScroll(T_Div_List, scrollSmooth);
 	gwinSetFont(T_Div_List, dejavu_sans_12);
 	gwinRedraw(T_Div_List);
-	gwinListAddItem(T_Div_List, "10", FALSE);
-	gwinListAddItem(T_Div_List, "Item2", FALSE);
-	gwinListAddItem(T_Div_List, "Item3", FALSE);
-	gwinListAddItem(T_Div_List, "Item4", FALSE);
-	gwinListAddItem(T_Div_List, "Item5", FALSE);
-	gwinListAddItem(T_Div_List, "Item6", FALSE);
+    gwinListAddItem(T_Div_List, "10us", TRUE);
+    gwinListAddItem(T_Div_List, "25us", TRUE);
+    gwinListAddItem(T_Div_List, "50us", TRUE);
+    gwinListAddItem(T_Div_List, "100us", TRUE);
+    gwinListAddItem(T_Div_List, "500us", TRUE);
+    gwinListAddItem(T_Div_List, "1ms", TRUE);
 	gwinListSetSelected(T_Div_List, 0, FALSE);
 	gwinListSetSelected(T_Div_List, 1, FALSE);
 	gwinListSetSelected(T_Div_List, 2, FALSE);
@@ -582,33 +590,72 @@ void guiCreate(void)
 	guiShowPage(0);
 
 }
-GEvent* tmp_pe;
+GHandle opened_lst=NULL;
+inline void which_btn(uint16_t tag)
+{
+	switch(tag)
+	{
+		case T_Div_Button_ID:
+			gwinSetVisible(T_Div_List, TRUE);
+			opened_lst = T_Div_List;
+		break;
+		case V_Div_Button_ID:
+			gwinSetVisible(V_Div_List, TRUE);
+			opened_lst = V_Div_List;
+		break;	
+	}
+}
+inline void which_lst(GHandle gh,uint16_t tag,GEvent* pe)
+{
+	switch(tag)
+	{
+		case T_Div_List_ID:
+			gwinSetText(T_Div_Label,gwinListItemGetText(gh,((GEventGWinList *)pe)->item),TRUE);	
+				
+		break;
+		case V_Div_List_ID:
+			gwinSetText(V_Div_Label,gwinListItemGetText(gh,((GEventGWinList *)pe)->item),TRUE);	
+				
+		break;	
+	}
+}
 
 void guiEventLoop(void)
 {
 	GEvent* pe;
+	GHandle gh;
 
-	while (1) {
+	uint16_t tag;
+	while (1) 
+	{
 		// Get an event
 		pe = geventEventWait(&glistener, TIME_INFINITE);
-		switch (pe->type) {
+		switch (pe->type) 
+		{
 			case GEVENT_GWIN_BUTTON:
-				gwinSetVisible(V_Div_List , TRUE);
+				if(opened_lst!=NULL)
+				{
+					gwinSetVisible(opened_lst, FALSE);
+					opened_lst = NULL;
+				}
+				gh = ((GEventGWinButton *)pe)->gwin;
+				tag= gwinGetTag(gh);
+				which_btn(tag);
 				//gwinSetText(((GEventGWinButton *)pe)->gwin,"asdf",TRUE);	
-				tmp_pe = pe;
 			break;
 			case GEVENT_GWIN_LIST:
-				if(gwinListItemIsSelected(((GEventGWinList *)pe)->gwin, ((GEventGWinList *)pe)->item));
+				gh = ((GEventGWinList *)pe)->gwin;
+				tag= gwinGetTag(gh);
+				if(gwinListItemIsSelected(gh, ((GEventGWinList *)pe)->item))
 				{
 				//	gwinListSetSelected(V_Div_List, 2, TRUE);
-					gwinSetText(V_Div_Label,gwinListItemGetText(((GEventGWinList *)pe)->gwin,((GEventGWinList *)pe)->item),TRUE);	
+					which_lst(gh,tag,pe);
 				//	gwinSetText(V_Div_Label,"asdf",TRUE);	
-				
-					gwinSetVisible(V_Div_List , FALSE);
-					gwinRedraw(V_Div_Label);
-					
+					gwinSetVisible(gh, FALSE);
+				//	gwinRedraw(V_Div_Label);
 				}
 
+			
 			break;
 
 		}

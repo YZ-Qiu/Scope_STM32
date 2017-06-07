@@ -186,7 +186,7 @@
 //        #define GWIN_KEYBOARD_DEFAULT_LAYOUT         VirtualKeyboard_English1
 //        #define GWIN_NEED_KEYBOARD_ENGLISH1          TRUE
     #define GWIN_FLAT_STYLING                        FALSE
-//    #define GWIN_WIDGET_TAGS                         FALSE
+    #define GWIN_WIDGET_TAGS                         TRUE
 
 #define GWIN_NEED_CONTAINERS                            TRUE
     #define GWIN_NEED_CONTAINER                      TRUE
