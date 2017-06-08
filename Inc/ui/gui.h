@@ -12,6 +12,9 @@
 // Widget groups
 #define GROUP_DEFAULT 0
 
+#define DOT_ON 2
+#define DOT_OFF 3
+
 // GListeners
 extern GListener glistener;
 

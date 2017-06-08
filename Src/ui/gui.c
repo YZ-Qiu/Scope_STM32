@@ -8,6 +8,10 @@
 #include "widgetstyles.h"
 #include "gui.h"
 #include "gwin_widget.h"
+#include "myDraw.h"
+
+#define TOP_UI_Y	30
+#define DOWN_UI_Y	200 //240-40
 
 
 #define DSO_DISP_W	320
@@ -16,9 +20,13 @@
 
 #define T_Div_Button_ID 0
 #define V_Div_Button_ID 1
+#define Y_Trg_Button_ID 2
 
-#define T_Div_List_ID 2
-#define V_Div_List_ID 3
+
+#define T_Div_List_ID 10
+#define V_Div_List_ID 11
+
+int Trg_Y_val=120;
 // GListeners
 GListener glistener;
 
@@ -54,7 +62,7 @@ GHandle Y_B_Label_Txt;
 GHandle Y_AB_Label;
 GHandle Y_AB_Label_Txt;
 GHandle Y_Trg_Label;
-GHandle Y_Trg_Label_Txt;
+GHandle Y_Trg_Button;
 
 GHandle Label_CH1;
 GHandle CH1_RMS_Label;
@@ -658,7 +666,7 @@ static void createPagePage0(void)
 	gwinSetFont(Y_AB_Label_Txt, dejavu_sans_10);
 	gwinRedraw(Y_AB_Label_Txt);
 
-	// Create label widget: Y_Trg_Label_Txt
+	// Create label widget: Y_Trg_Button
 	wi.g.show = TRUE;
 	wi.g.x = 290;
 	wi.g.y = 15;
@@ -666,13 +674,19 @@ static void createPagePage0(void)
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "0.000";
-	wi.customDraw = gwinLabelDrawJustifiedRight;
+	wi.customDraw = gwinButtonDraw_Normal;
 	wi.customParam = 0;
-	wi.customStyle = &y;
-	Y_Trg_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(Y_Trg_Label_Txt, FALSE);
-	gwinSetFont(Y_Trg_Label_Txt, dejavu_sans_10);
-	gwinRedraw(Y_Trg_Label_Txt);
+	wi.customStyle = &divc;
+	Y_Trg_Button = gwinButtonCreate(0, &wi);
+	gwinSetTag(Y_Trg_Button,Y_Trg_Button_ID);
+	gwinSetFont(Y_Trg_Button ,dejavu_sans_10);
+	gwinRedraw(Y_Trg_Button);
+
+
+
+
+
+
 
 	// Create label widget: CH1_RMS_Label_Txt
 	wi.g.show = TRUE;
@@ -806,7 +820,7 @@ static void createPagePage0(void)
 	wi.g.show = FALSE;
 	wi.g.x = 30;
 	wi.g.y = 30;
-	wi.g.width = 40;
+	wi.g.width = 50;
 	wi.g.height = 70;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "List1";
@@ -887,23 +901,33 @@ void guiCreate(void)
  
 }
 
-GHandle *lst_ptr=NULL;
-inline void openLst(uint16_t tag)
+GHandle *opened_gh=NULL;
+
+inline void btn_event(uint16_t tag)
 {
 
 	switch(tag)
 	{
 		case T_Div_Button_ID:
+			if(gwinGetTag(*opened_gh) == V_Div_List_ID)
+				gwinSetVisible( V_Div_List,FALSE);
 			gwinSetVisible(T_Div_List, TRUE);
-			lst_ptr = &T_Div_List;
+			opened_gh = &T_Div_List;
 		break;
 		case V_Div_Button_ID:
+			if(gwinGetTag(*opened_gh) == T_Div_List_ID)
+				gwinSetVisible( T_Div_List,FALSE);
 			gwinSetVisible(V_Div_List, TRUE);
-			lst_ptr = &V_Div_List;
+			opened_gh = &V_Div_List;
 		break;	
+		case Y_Trg_Button_ID:
+			opened_gh = &Y_Trg_Button;
+			drawDotLineHV(0, Trg_Y_val, 320, Trg_Y_val, Red);
+		break;
 	}
 }
-inline void setLabelTxt(GHandle gh,uint16_t tag,GEvent* pe)
+//Set text if select item
+inline void lst_event(GHandle gh,uint16_t tag,GEvent* pe)
 {
 	switch(tag)
 	{
@@ -912,43 +936,76 @@ inline void setLabelTxt(GHandle gh,uint16_t tag,GEvent* pe)
 		break;
 		case V_Div_List_ID:
 			gwinSetText(V_Div_Label,gwinListItemGetText(gh,((GEventGWinList *)pe)->item),TRUE);		
-		break;	
+		break;
+			
 	}
 }
 
+
 void guiEventLoop(void)
 {
+	//Setup code
 	GEvent* pe;
 	GHandle gh;
-
+	GSourceHandle gs;	//for listen mouse event 
+	GEventMouse     *pem;
 	uint16_t tag;
+
+	gs = ginputGetMouse(0);//for listen mouse event 
+  	geventAttachSource(&glistener, gs, GLISTEN_MOUSEDOWNMOVES|GLISTEN_MOUSEMETA);
+	//Inf 
 	while (1) 
 	{
 		// Get an event
+		//stuck here until event is received
 		pe = geventEventWait(&glistener, TIME_INFINITE);
 		switch (pe->type) 
 		{
 			case GEVENT_GWIN_BUTTON:
-				if(lst_ptr)
-				{
-					gwinSetVisible(*lst_ptr, FALSE);
-					lst_ptr = NULL;
-				}
 				tag= gwinGetTag(((GEventGWinButton *)pe)->gwin);
-				openLst(tag);
+				btn_event(tag);
 			break;
 			case GEVENT_GWIN_LIST:
 				gh = ((GEventGWinList *)pe)->gwin;
 				tag= gwinGetTag(gh);
+
 				if(gwinListItemIsSelected(gh, ((GEventGWinList *)pe)->item))
 				{
-					setLabelTxt(gh,tag,pe);
+					lst_event(gh,tag,pe);
 					gwinSetVisible(gh, FALSE);
 				}
+			break;
+			default:
+				if(opened_gh==NULL)
+					break;
+				tag = gwinGetTag(*opened_gh);
+				switch(tag)
+				{
+					case Y_Trg_Button_ID:
+						pem = (GEventMouse *)pe;
+					 	if(pem->y >TOP_UI_Y && pem->y< DOWN_UI_Y)
+					 	{
+							//Clean previous draw
+							drawDotLineHV(0, Trg_Y_val, 320, Trg_Y_val, Black);
+							Trg_Y_val = pem->y;
+							drawDotLineHV(0, Trg_Y_val, 320, Trg_Y_val, Red);
+					 	}
+					break;
+					case V_Div_List_ID:
+					case T_Div_List_ID:
+						if(gwinListItemIsSelected(*opened_gh, ((GEventGWinList *)pe)->item))
+						{
+							lst_event(*opened_gh,tag,pe);
+							gwinSetVisible(*opened_gh, FALSE);
+							opened_gh = NULL;
+						}
+					break;
+						
+				}
+				
 			break;
 
 		}
 
 	}
 }
-
