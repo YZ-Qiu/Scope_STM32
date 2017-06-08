@@ -9,7 +9,6 @@
 #include "gui.h"
 #include "gwin_widget.h"
 
-
 #define DSO_DISP_W	320
 #define DSO_DISP_H	170
 
@@ -19,11 +18,15 @@
 
 #define T_Div_List_ID 2
 #define V_Div_List_ID 3
+
 // GListeners
 GListener glistener;
 
 // GHandles
 GHandle ghContainerPage0;
+
+GHandle DSO_graph;
+//current CHx display on top left
 GHandle Label_CH;
 
 GHandle T_Div_Button;
@@ -57,8 +60,6 @@ GHandle Y_Trg_Label_Txt;
 
 GHandle Label_CH1;
 GHandle CH1_RMS_Label;
-GHandle CH1_RMS_Label_Txt;
-
 
 GHandle CH1_F_Label;
 GHandle CH1_F_Label_Txt;
@@ -77,6 +78,8 @@ GHandle CH1_P_Label_Txt;
 
 GHandle Label_CH2;
 GHandle CH2_Label;
+
+
 // Fonts
 font_t dejavu_sans_16;
 font_t dejavu_sans_12;
@@ -92,12 +95,23 @@ static void containerDraw_Back(GWidgetObject* gw, void* param)
 	// Draw the elements
 	gdispFillArea(0, 0, 340, 240, black_studio);
 }
-
+//static GGraphObject GGO;
+// A graph styling
+/*
+static GGraphStyle GraphStyle1 = {
+    { GGRAPH_POINT_DOT, 0, Blue },          // Point
+    { GGRAPH_LINE_NONE, 2, Gray },          // Line
+    { GGRAPH_LINE_SOLID, 0, White },        // X axis
+    { GGRAPH_LINE_SOLID, 0, White },        // Y axis
+    { GGRAPH_LINE_DASH, 5, Gray, 50 },      // X grid
+    { GGRAPH_LINE_DOT, 7, Yellow, 50 },     // Y grid
+    GWIN_GRAPH_STYLE_POSITIVE_AXIS_ARROWS   // Flags
+};
+*/
 static void createPagePage0(void)
 {
 	GWidgetInit wi;
 	gwinWidgetClearInit(&wi);
-
 
 	// create container widget: ghContainerPage0
 	wi.g.show = FALSE;
@@ -112,15 +126,49 @@ static void createPagePage0(void)
 	wi.customStyle = 0;
 	ghContainerPage0 = gwinContainerCreate(0, &wi, 0);
 
+
+
+	// Create the graph window
+	/*
+	GWindowInit win;
+	win.show = TRUE;
+	win.x = 0;
+	win.y = 30;
+	win.width = DSO_DISP_W;
+	win.height = DSO_DISP_H;
+	win.parent =ghContainerPage0;
+	DSO_graph = gwinGraphCreate( &GGO,&win);
+   // Set the graph origin and style
+    gwinGraphSetOrigin(DSO_graph, DSO_DISP_W/2, DSO_DISP_H/2);
+    gwinGraphSetStyle(DSO_graph, &GraphStyle1);
+    gwinGraphDrawAxis(DSO_graph);
+    gwinRedraw(DSO_graph);
+	*/
+	/*
+	wi.g.show = TRUE;
+	wi.g.x = 0;
+	wi.g.y = 30;
+	wi.g.width = DSO_DISP_W;
+	wi.g.height = DSO_DISP_H;
+	wi.g.parent =ghContainerPage0;
+	DSO_graph = gwinGraphCreate(0,&wi.g);
+   // Set the graph origin and style
+	
+    gwinGraphSetOrigin(DSO_graph, DSO_DISP_W/2, DSO_DISP_H/2);
+    gwinGraphSetStyle(DSO_graph, &GraphStyle1);
+    gwinGraphDrawAxis(DSO_graph);
+    gwinRedraw(DSO_graph);
+	*/
+
 	// Create label widget: T_Div_Label
 	wi.g.show = TRUE;
 	wi.g.x = 30;
 	wi.g.y = 15;
-	wi.g.width = 50;
+	wi.g.width = 40;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "10us";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &divc;
 	T_Div_Label = gwinLabelCreate(0, &wi);
@@ -130,13 +178,13 @@ static void createPagePage0(void)
 
 	// Create label widget: V_Div_Label
 	wi.g.show = TRUE;
-	wi.g.x = 80;
+	wi.g.x = 70;
 	wi.g.y = 15;
-	wi.g.width = 40;
+	wi.g.width = 50;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "0.5V";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &divc;
 	V_Div_Label = gwinLabelCreate(0, &wi);
@@ -152,7 +200,7 @@ static void createPagePage0(void)
 	wi.g.height = 30;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "X";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	Label_X = gwinLabelCreate(0, &wi);
@@ -166,7 +214,7 @@ static void createPagePage0(void)
 	wi.g.height = 30;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "Y";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &y;
 	Label_Y = gwinLabelCreate(0, &wi);
@@ -180,7 +228,7 @@ static void createPagePage0(void)
 	wi.g.height = 20;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "CH1";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	Label_CH1 = gwinLabelCreate(0, &wi);
@@ -194,7 +242,7 @@ static void createPagePage0(void)
 	wi.g.height = 20;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "CH2";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &y;
 	Label_CH2 = gwinLabelCreate(0, &wi);
@@ -208,7 +256,7 @@ static void createPagePage0(void)
 	wi.g.height = 30;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "CH1";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &divc;
 	Label_CH = gwinLabelCreate(0, &wi);
@@ -220,11 +268,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 130;
 	wi.g.y = 0;
-	wi.g.width = 10;
+	wi.g.width = 40;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "A:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	X_A_Label = gwinLabelCreate(0, &wi);
@@ -236,11 +284,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 130;
 	wi.g.y = 15;
-	wi.g.width = 10;
+	wi.g.width = 40;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "B:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	X_B_Label = gwinLabelCreate(0, &wi);
@@ -252,7 +300,7 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 30;
 	wi.g.y = 0;
-	wi.g.width = 50;
+	wi.g.width = 40;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "T/Div";
@@ -284,11 +332,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 230;
 	wi.g.y = 0;
-	wi.g.width = 10;
+	wi.g.width = 40;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "A:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &y;
 	Y_A_Label = gwinLabelCreate(0, &wi);
@@ -300,11 +348,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 230;
 	wi.g.y = 15;
-	wi.g.width = 10;
+	wi.g.width = 40;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "B:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.text = "B:          ";
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &y;
 	Y_B_Label = gwinLabelCreate(0, &wi);
@@ -316,11 +364,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 170;
 	wi.g.y = 0;
-	wi.g.width = 10;
+	wi.g.width = 50;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "F:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	X_F_Label = gwinLabelCreate(0, &wi);
@@ -332,11 +380,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 170;
 	wi.g.y = 15;
-	wi.g.width = 20;
+	wi.g.width = 50;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "A-B:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	X_AB_Label = gwinLabelCreate(0, &wi);
@@ -348,11 +396,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 270;
 	wi.g.y = 0;
-	wi.g.width = 20;
+	wi.g.width = 50;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "A-B:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &y;
 	Y_AB_Label = gwinLabelCreate(0, &wi);
@@ -364,11 +412,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 270;
 	wi.g.y = 15;
-	wi.g.width = 20;
+	wi.g.width = 50;
 	wi.g.height = 15;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "Trg:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &trg;
 	Y_Trg_Label = gwinLabelCreate(0, &wi);
@@ -380,11 +428,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 40;
 	wi.g.y = 200;
-	wi.g.width = 25;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "RMS:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_RMS_Label = gwinLabelCreate(0, &wi);
@@ -392,15 +440,16 @@ static void createPagePage0(void)
 	gwinSetFont(CH1_RMS_Label, dejavu_sans_10);
 	gwinRedraw(CH1_RMS_Label);
 
+
 	// Create label widget: CH1_F_Label
 	wi.g.show = TRUE;
 	wi.g.x = 40;
 	wi.g.y = 210;
-	wi.g.width = 10;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "F:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_F_Label = gwinLabelCreate(0, &wi);
@@ -412,11 +461,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 110;
 	wi.g.y = 200;
-	wi.g.width = 25;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "Max:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_Max_Label = gwinLabelCreate(0, &wi);
@@ -428,11 +477,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 180;
 	wi.g.y = 200;
-	wi.g.width = 15;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "PP:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_PP_Label = gwinLabelCreate(0, &wi);
@@ -444,11 +493,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 250;
 	wi.g.y = 200;
-	wi.g.width = 10;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "D:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_D_Label = gwinLabelCreate(0, &wi);
@@ -460,11 +509,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 110;
 	wi.g.y = 210;
-	wi.g.width = 25;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "Min:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_Min_Label = gwinLabelCreate(0, &wi);
@@ -476,11 +525,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 180;
 	wi.g.y = 210;
-	wi.g.width = 15;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "Pk:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_Pk_Label = gwinLabelCreate(0, &wi);
@@ -492,11 +541,11 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 250;
 	wi.g.y = 210;
-	wi.g.width = 10;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "P:";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
 	CH1_P_Label = gwinLabelCreate(0, &wi);
@@ -512,7 +561,7 @@ static void createPagePage0(void)
 	wi.g.height = 20;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
+	wi.customDraw = justifyLeft;
 	wi.customParam = 0;
 	wi.customStyle = &y;
 	CH2_Label = gwinLabelCreate(0, &wi);
@@ -545,263 +594,7 @@ static void createPagePage0(void)
 	gwinListSetSelected(V_Div_List, 1, FALSE);
 	gwinListSetSelected(V_Div_List, 2, FALSE);
 	gwinListSetSelected(V_Div_List, 3, FALSE);
-
-	// Create label widget: X_A_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 140;
-	wi.g.y = 0;
-	wi.g.width = 30;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	X_A_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(X_A_Label_Txt, FALSE);
-	gwinSetFont(X_A_Label_Txt, dejavu_sans_10);
-	gwinRedraw(X_A_Label_Txt);
-
-	// Create label widget: X_B_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 140;
-	wi.g.y = 15;
-	wi.g.width = 30;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	X_B_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(X_B_Label_Txt, FALSE);
-	gwinSetFont(X_B_Label_Txt, dejavu_sans_10);
-	gwinRedraw(X_B_Label_Txt);
-
-	// Create label widget: X_F_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 180;
-	wi.g.y = 0;
-	wi.g.width = 40;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	X_F_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(X_F_Label_Txt, FALSE);
-	gwinSetFont(X_F_Label_Txt, dejavu_sans_10);
-	gwinRedraw(X_F_Label_Txt);
-
-	// Create label widget: X_AB_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 190;
-	wi.g.y = 15;
-	wi.g.width = 30;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	X_AB_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(X_AB_Label_Txt, FALSE);
-	gwinSetFont(X_AB_Label_Txt, dejavu_sans_10);
-	gwinRedraw(X_AB_Label_Txt);
-
-	// Create label widget: Y_A_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 240;
-	wi.g.y = 0;
-	wi.g.width = 30;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &y;
-	Y_A_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(Y_A_Label_Txt, FALSE);
-	gwinSetFont(Y_A_Label_Txt, dejavu_sans_10);
-	gwinRedraw(Y_A_Label_Txt);
-
-	// Create label widget: Y_B_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 240;
-	wi.g.y = 15;
-	wi.g.width = 30;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &y;
-	Y_B_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(Y_B_Label_Txt, FALSE);
-	gwinSetFont(Y_B_Label_Txt, dejavu_sans_10);
-	gwinRedraw(Y_B_Label_Txt);
-
-	// Create label widget: Y_AB_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 290;
-	wi.g.y = 0;
-	wi.g.width = 30;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &y;
-	Y_AB_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(Y_AB_Label_Txt, FALSE);
-	gwinSetFont(Y_AB_Label_Txt, dejavu_sans_10);
-	gwinRedraw(Y_AB_Label_Txt);
-
-	// Create label widget: Y_Trg_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 290;
-	wi.g.y = 15;
-	wi.g.width = 30;
-	wi.g.height = 15;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &y;
-	Y_Trg_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(Y_Trg_Label_Txt, FALSE);
-	gwinSetFont(Y_Trg_Label_Txt, dejavu_sans_10);
-	gwinRedraw(Y_Trg_Label_Txt);
-
-	// Create label widget: CH1_RMS_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 65;
-	wi.g.y = 200;
-	wi.g.width = 45;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_RMS_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_RMS_Label_Txt, FALSE);
-	gwinSetFont(CH1_RMS_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_RMS_Label_Txt);
-
-	// Create label widget: CH1_F_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 50;
-	wi.g.y = 210;
-	wi.g.width = 60;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_F_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_F_Label_Txt, FALSE);
-	gwinSetFont(CH1_F_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_F_Label_Txt);
-
-	// Create label widget: CH1_Max_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 135;
-	wi.g.y = 200;
-	wi.g.width = 45;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_Max_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_Max_Label_Txt, FALSE);
-	gwinSetFont(CH1_Max_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_Max_Label_Txt);
-
-	// Create label widget: CH1_Min_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 135;
-	wi.g.y = 210;
-	wi.g.width = 45;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_Min_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_Min_Label_Txt, FALSE);
-	gwinSetFont(CH1_Min_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_Min_Label_Txt);
-
-	// Create label widget: CH1_PP_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 195;
-	wi.g.y = 200;
-	wi.g.width = 55;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_PP_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_PP_Label_Txt, FALSE);
-	gwinSetFont(CH1_PP_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_PP_Label_Txt);
-
-	// Create label widget: CH1_Pk_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 195;
-	wi.g.y = 210;
-	wi.g.width = 55;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_Pk_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_Pk_Label_Txt, FALSE);
-	gwinSetFont(CH1_Pk_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_Pk_Label_Txt);
-
-	// Create label widget: CH1_D_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 260;
-	wi.g.y = 200;
-	wi.g.width = 60;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_D_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_D_Label_Txt, FALSE);
-	gwinSetFont(CH1_D_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_D_Label_Txt);
-
-	// Create label widget: CH1_P_Label_Txt
-	wi.g.show = TRUE;
-	wi.g.x = 260;
-	wi.g.y = 210;
-	wi.g.width = 60;
-	wi.g.height = 10;
-	wi.g.parent = ghContainerPage0;
-	wi.text = "XXXXXXXXXX";
-	wi.customDraw = gwinLabelDrawJustifiedLeft;
-	wi.customParam = 0;
-	wi.customStyle = &x;
-	CH1_P_Label_Txt = gwinLabelCreate(0, &wi);
-	gwinLabelSetBorder(CH1_P_Label_Txt, FALSE);
-	gwinSetFont(CH1_P_Label_Txt, dejavu_sans_10);
-	gwinRedraw(CH1_P_Label_Txt);
-
+	
 	// Create list widget: T_Div_List
 	wi.g.show = FALSE;
 	wi.g.x = 30;
@@ -830,6 +623,9 @@ static void createPagePage0(void)
 	gwinListSetSelected(T_Div_List, 3, FALSE);
 	gwinListSetSelected(T_Div_List, 4, FALSE);
 	gwinListSetSelected(T_Div_List, 5, FALSE);
+
+
+    
 }
 
 void guiShowPage(unsigned pageIndex)
@@ -873,7 +669,6 @@ void guiCreate(void)
 	guiShowPage(0);
 
 }
-
 GHandle *lst_ptr=NULL;
 inline void openLst(uint16_t tag)
 {
@@ -918,7 +713,7 @@ void guiEventLoop(void)
 			case GEVENT_GWIN_BUTTON:
 				if(lst_ptr)
 				{
-					gwinSetVisible(*lst_ptr, FALSE);
+					gwinSetVisible(lst_ptr, FALSE);
 					lst_ptr = NULL;
 				}
 				tag= gwinGetTag(((GEventGWinButton *)pe)->gwin);
