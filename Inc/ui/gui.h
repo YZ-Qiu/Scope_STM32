@@ -53,14 +53,14 @@ extern GHandle CH1_RMS_Label;
 extern GHandle CH1_RMS_Label_Txt;
 
 
-extern GHandle CH1_F_Label;
-extern GHandle CH1_F_Label_Txt;
+extern GHandle CH1_SF_Label;
+extern GHandle CH1_SF_Label_Txt;
 extern GHandle CH1_Max_Label;
 extern GHandle CH1_Max_Label_Txt;
 extern GHandle CH1_PP_Label;
 extern GHandle CH1_PP_Label_Txt;
-extern GHandle CH1_D_Label;
-extern GHandle CH1_D_Label_Txt;
+extern GHandle CH1_RT_Label;
+extern GHandle CH1_RT_Label_Txt;
 extern GHandle CH1_Min_Label;
 extern GHandle CH1_Min_Label_Txt;
 extern GHandle CH1_Pk_Label;
