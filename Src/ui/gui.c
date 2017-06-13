@@ -10,6 +10,17 @@
 #include "gwin_widget.h"
 #include "myDraw.h"
 
+//copy from main.c of master
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+#include "adc.h"
+#include "dma.h"
+#include "rng.h"
+#include "spi.h"
+#include "gpio.h"
+#include "LCD.h"
+#include "Tpad.h"
+
 #define TOP_UI_Y	30
 #define DOWN_UI_Y	200 //240-40
 
@@ -850,6 +861,7 @@ static void createPagePage0(void)
 
 }
 
+
 void guiShowPage(unsigned pageIndex)
 {
 	// Hide all pages
@@ -894,10 +906,72 @@ void guiCreate(void)
 
 
 
+	//draw ADC data
+
+
+
+/*
+   float val=0;
+    char str[16];
+     for(;;)
+  {
+
+    val+=0.001;
+   // sprintf(str, "%.3f", val);
+  //	snprintf(str, sizeof(str), "%.3f", val);
+
+  float2str(ADC_val,str,3);
+
+   LCD_print(10, 30, str);
+    osDelay(300);
+    LCD_printColor(10, 30, str, Black);
+   // LCD_Clear(Black);
+  }
+*/
+	
+ uint16_t ADC_val=0;
+ uint16_t ADC_buffer[2][320]={};
+ uint16_t smp_cnt = 0;
+MX_ADC1_Init();
+  //void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
+  HAL_ADC_Start(&hadc1);
+  uint16_t buf_i=0,i;
+  //Assume 42MHz sample rate---> down scale to 420Hz
+  char str[32],buf_str[32];
+  int use_buf=0;
+  for(;;)
+  {
+  	if(smp_cnt > 199){
+      if(buf_i==320)
+      {
+        use_buf = !use_buf;
+        for(i=0;i<(320-1);i++)
+        {
+          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Black);
+        }
+        use_buf = !use_buf;
+        
+        for(i=0;i<(320-1);i++)
+        {
+          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Green);
+        }
+        buf_i=0;
+        use_buf = !use_buf;
+      }
+      ADC_buffer[use_buf][buf_i] = (ADC_val)*240/4096;
+      buf_i++;
+      smp_cnt = 0;
+  	}
+  	smp_cnt++;
+  }
+
+/*
 	int i;
  	for(i = 0; i < 320; i++) {
-        gdispDrawPixel(i, 120+80*sin(2*M_PI*i/180),White);
+        gdispDrawPixel(i, 120+80*cos(2*M_PI*i/200),White);
     }
+*/
  
 }
 

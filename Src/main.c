@@ -23,15 +23,16 @@ void MX_FREERTOS_Init(void);
 
 osThreadId UI_TaskHandle;
 
+
 osThreadId TouchTaskHandle;
 void Touch_Task(void const * argument)
 {
-    LCD_Initializtion();
-
+  LCD_Initializtion();
   Tpad_Init();
   Tpad_Calibrate();
   for(;;){}
 }
+
 
 #define PI 3.14159265
 int main(void)
@@ -50,6 +51,7 @@ int main(void)
 
   osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 2048);
   UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
+  
 
   /*
     osThreadDef(t_Task,Touch_Task, osPriorityHigh, 1, 1024);
@@ -83,8 +85,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 24;
-  RCC_OscInitStruct.PLL.PLLN = 335;
+  RCC_OscInitStruct.PLL.PLLM = 23;
+  RCC_OscInitStruct.PLL.PLLN = 334;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 8;
   HAL_RCC_OscConfig(&RCC_OscInitStruct);
