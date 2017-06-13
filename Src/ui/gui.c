@@ -878,6 +878,9 @@ void guiShowPage(unsigned pageIndex)
 	}
 }
 
+
+
+
 void guiCreate(void)
 {
 	GWidgetInit wi;
@@ -929,10 +932,10 @@ void guiCreate(void)
   }
 */
 	
- uint16_t ADC_val=0;
- uint16_t ADC_buffer[2][320]={};
- uint16_t smp_cnt = 0;
-MX_ADC1_Init();
+  uint16_t ADC_val=0;
+  uint16_t ADC_buffer[2][320]={};
+  uint16_t smp_cnt = 0;
+  MX_ADC1_Init();
   //void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
   HAL_ADC_Start(&hadc1);
@@ -942,6 +945,8 @@ MX_ADC1_Init();
   int use_buf=0;
   for(;;)
   {
+  	ADC_val = HAL_ADC_GetValue(&hadc1);
+    smp_cnt++;
   	if(smp_cnt > 199){
       if(buf_i==320)
       {
@@ -963,7 +968,6 @@ MX_ADC1_Init();
       buf_i++;
       smp_cnt = 0;
   	}
-  	smp_cnt++;
   }
 
 /*
