@@ -75,6 +75,7 @@ extern GHandle Label_CH2;
 extern GHandle CH2_Label;
 
 // Function Prototypes
+void displayADC(void);
 void guiCreate(void);
 void guiShowPage(unsigned pageIndex);
 void guiEventLoop(void);

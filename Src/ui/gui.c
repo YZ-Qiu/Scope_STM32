@@ -13,10 +13,9 @@
 //copy from main.c of master
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include "adc.h"
-#include "dma.h"
 #include "rng.h"
 #include "spi.h"
+#include "adc.h"
 #include "gpio.h"
 #include "LCD.h"
 #include "Tpad.h"
@@ -878,6 +877,56 @@ void guiShowPage(unsigned pageIndex)
 	}
 }
 
+void displayADC(void)
+{
+/*
+		int i;
+ 	for(i = 0; i < 320; i++) {
+        gdispDrawPixel(i, 120+80*cos(2*M_PI*i/200),White);
+    }
+    */
+
+  uint16_t ADC_val=0;
+  uint16_t ADC_buffer[2][320]={};
+  uint16_t smp_cnt = 0;
+  MX_ADC1_Init();
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
+  HAL_ADC_Start(&hadc1);
+  uint16_t buf_i=0;
+  //Assume 42MHz sample rate---> down scale to 420Hz
+  char str[32];
+  int use_buf=0,i;
+  while(1)
+  {
+
+    ADC_val = HAL_ADC_GetValue(&hadc1);
+    smp_cnt++;
+    if(smp_cnt > 199){
+      if(buf_i==320)
+      {
+        use_buf = !use_buf;
+        for(i=0;i<(320-1);i++)
+        {
+          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Black);
+        }
+        use_buf = !use_buf;
+        
+        for(i=0;i<(320-1);i++)
+        {
+          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Green);
+        }
+        buf_i=0;
+        use_buf = !use_buf;
+      }
+      ADC_buffer[use_buf][buf_i] = (ADC_val)*240/4096;
+      buf_i++;
+      smp_cnt = 0;
+    }
+  }
+  
+}
+
+
 
 
 
@@ -932,43 +981,7 @@ void guiCreate(void)
   }
 */
 	
-  uint16_t ADC_val=0;
-  uint16_t ADC_buffer[2][320]={};
-  uint16_t smp_cnt = 0;
-  MX_ADC1_Init();
-  //void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
-  HAL_ADC_Start(&hadc1);
-  uint16_t buf_i=0,i;
-  //Assume 42MHz sample rate---> down scale to 420Hz
-  char str[32],buf_str[32];
-  int use_buf=0;
-  for(;;)
-  {
-  	ADC_val = HAL_ADC_GetValue(&hadc1);
-    smp_cnt++;
-  	if(smp_cnt > 199){
-      if(buf_i==320)
-      {
-        use_buf = !use_buf;
-        for(i=0;i<(320-1);i++)
-        {
-          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Black);
-        }
-        use_buf = !use_buf;
-        
-        for(i=0;i<(320-1);i++)
-        {
-          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Green);
-        }
-        buf_i=0;
-        use_buf = !use_buf;
-      }
-      ADC_buffer[use_buf][buf_i] = (ADC_val)*240/4096;
-      buf_i++;
-      smp_cnt = 0;
-  	}
-  }
+
 
 /*
 	int i;
