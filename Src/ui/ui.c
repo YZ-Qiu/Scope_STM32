@@ -56,4 +56,5 @@ void ScopeDisplay()
 {
   gfxInit();
   displayADC();
+
 }

@@ -76,6 +76,11 @@ extern GHandle CH2_Label;
 
 // Function Prototypes
 void displayADC(void);
+float findMax(void);
+float findMin(void);
+float findRMS(void);
+float findP2P(void);
+float findPk(void);
 void guiCreate(void);
 void guiShowPage(unsigned pageIndex);
 void guiEventLoop(void);

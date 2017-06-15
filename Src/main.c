@@ -25,9 +25,22 @@ void MX_FREERTOS_Init(void);
 osThreadId UI_TaskHandle;
 osThreadId ADC_TaskHandle;
 
-
-
-
+void LED1_blink_Task(void const * argument)
+{
+  for(;;)
+  {
+    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
+    osDelay(500);
+  }
+}
+void LED2_blink_Task(void const * argument)
+{
+  for(;;)
+  {
+    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
+    osDelay(1000);
+  }
+}
 
 #define PI 3.14159265
 int main(void)
@@ -42,11 +55,15 @@ int main(void)
   MX_RNG_Init();
   MX_SPI3_Init();
 //  LCD_Initializtion();
-  osThreadDef(ADC_Task, UserInterface, osPriorityHigh, 1, 2048);
+
+  osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 1024);
+  UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
+  
+  osThreadDef(ADC_Task, ScopeDisplay, osPriorityRealtime, 1, 1024);
   ADC_TaskHandle = osThreadCreate(osThread(ADC_Task), NULL);
 
-  osThreadDef(UI_Task, ScopeDisplay, osPriorityHigh, 1, 2048);
-  UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
+
+  
   osKernelStart();
 }
 
