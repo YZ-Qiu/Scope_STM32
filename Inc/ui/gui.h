@@ -81,6 +81,7 @@ float findMin(void);
 float findRMS(void);
 float findP2P(void);
 float findPk(void);
+float findRT(void);
 void guiCreate(void);
 void guiShowPage(unsigned pageIndex);
 void guiEventLoop(void);

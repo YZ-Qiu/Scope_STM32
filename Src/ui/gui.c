@@ -919,13 +919,13 @@ void displayADC(void)
         use_buf = !use_buf;
         for(i=0;i<(320-1);i++)
         {
-          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Black);
+          gdispDrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Black);
         }
         use_buf = !use_buf;
         
         for(i=0;i<(320-1);i++)
         {
-          LCD_DrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Green);
+          gdispDrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Green);
         }
         buf_i=0;
         use_buf = !use_buf;
@@ -975,6 +975,16 @@ float findRMS()
 		RMS += (ADC_buffer[0][i]*ADC_buffer[0][i]);
 	return RMS;
 }
+
+float findRT()
+{
+	//after trigger solved
+	//need to know if signal is increasing or not 
+	//and increase from 10%-->90%
+}
+
+
+
 
 void guiCreate(void)
 {
@@ -1095,7 +1105,7 @@ void guiEventLoop(void)
 	{
 		// Get an event
 		//stuck here until event is received
-		
+
 		pe = geventEventWait(&glistener, TIME_INFINITE);
 		switch (pe->type) 
 		{
@@ -1117,6 +1127,7 @@ void guiEventLoop(void)
 				if(opened_gh==NULL)
 					break;
 				tag = gwinGetTag(*opened_gh);
+				
 				switch(tag)
 				{
 					case Y_Trg_Button_ID:

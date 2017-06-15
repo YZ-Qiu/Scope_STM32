@@ -56,14 +56,14 @@ int main(void)
   MX_SPI3_Init();
 //  LCD_Initializtion();
 
-  osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 1024);
-  UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
-  
-  osThreadDef(ADC_Task, ScopeDisplay, osPriorityRealtime, 1, 1024);
+
+
+  osThreadDef(ADC_Task, ScopeDisplay, osPriorityRealtime, 1, 2048);
   ADC_TaskHandle = osThreadCreate(osThread(ADC_Task), NULL);
 
+  osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 2048);
+  UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
 
-  
   osKernelStart();
 }
 

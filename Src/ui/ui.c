@@ -10,8 +10,7 @@
 #include <string.h>
 
 #include "stm32f4xx_hal.h"
-#include "adc.h"
-#include "dma.h"
+
 #include "cmsis_os.h"
 #include "rng.h"
 #include "myDraw.h"
@@ -55,6 +54,14 @@ void UserInterface()
 void ScopeDisplay()
 {
   gfxInit();
-  displayADC();
 
+  gdispSetBacklight(100);
+  gdispSetContrast(100);
+
+  geventListenerInit(&glistener);
+  gwinAttachListener(&glistener);
+
+  //guiCreate();
+
+  displayADC();
 }
