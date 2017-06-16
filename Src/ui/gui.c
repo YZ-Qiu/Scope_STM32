@@ -80,14 +80,14 @@ GHandle CH1_RMS_Label;
 GHandle CH1_RMS_Label_Txt;
 
 
-GHandle CH1_SF_Label;
-GHandle CH1_SF_Label_Txt;
+//GHandle CH1_SF_Label;
+//GHandle CH1_SF_Label_Txt;
 GHandle CH1_Max_Label;
 GHandle CH1_Max_Label_Txt;
 GHandle CH1_PP_Label;
 GHandle CH1_PP_Label_Txt;
-GHandle CH1_RT_Label;
-GHandle CH1_RT_Label_Txt;
+//GHandle CH1_RT_Label;
+//GHandle CH1_RT_Label_Txt;
 GHandle CH1_Min_Label;
 GHandle CH1_Min_Label_Txt;
 GHandle CH1_Pk_Label;
@@ -402,7 +402,7 @@ static void createPagePage0(void)
 	wi.g.width = 25;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "RMS:";
+	wi.text = "RMS";
 	wi.customDraw = gwinLabelDrawJustifiedLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -411,6 +411,7 @@ static void createPagePage0(void)
 	gwinSetFont(CH1_RMS_Label, dejavu_sans_10);
 	gwinRedraw(CH1_RMS_Label);
 
+/*
 	// Create label widget: CH1_SF_Label
 	wi.g.show = TRUE;
 	wi.g.x = 40;
@@ -426,15 +427,16 @@ static void createPagePage0(void)
 	gwinLabelSetBorder(CH1_SF_Label, FALSE);
 	gwinSetFont(CH1_SF_Label, dejavu_sans_10);
 	gwinRedraw(CH1_SF_Label);
+*/
 
 	// Create label widget: CH1_Max_Label
 	wi.g.show = TRUE;
-	wi.g.x = 110;
+	wi.g.x = 135;
 	wi.g.y = 200;
-	wi.g.width = 25;
+	wi.g.width = 30;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "Max:";
+	wi.text = " Max";
 	wi.customDraw = gwinLabelDrawJustifiedLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -445,12 +447,12 @@ static void createPagePage0(void)
 
 	// Create label widget: CH1_PP_Label
 	wi.g.show = TRUE;
-	wi.g.x = 180;
+	wi.g.x = 225;
 	wi.g.y = 200;
-	wi.g.width = 15;
+	wi.g.width = 25;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "PP:";
+	wi.text = " PP";
 	wi.customDraw = gwinLabelDrawJustifiedLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -459,6 +461,7 @@ static void createPagePage0(void)
 	gwinSetFont(CH1_PP_Label, dejavu_sans_10);
 	gwinRedraw(CH1_PP_Label);
 
+/*
 	// Create label widget: CH1_RT_Label
 	wi.g.show = TRUE;
 	wi.g.x = 250;
@@ -474,15 +477,15 @@ static void createPagePage0(void)
 	gwinLabelSetBorder(CH1_RT_Label, FALSE);
 	gwinSetFont(CH1_RT_Label, dejavu_sans_10);
 	gwinRedraw(CH1_RT_Label);
-
+*/
 	// Create label widget: CH1_Min_Label
 	wi.g.show = TRUE;
-	wi.g.x = 110;
+	wi.g.x = 135;
 	wi.g.y = 210;
-	wi.g.width = 25;
+	wi.g.width = 30;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "Min:";
+	wi.text = " Min";
 	wi.customDraw = gwinLabelDrawJustifiedLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -493,12 +496,12 @@ static void createPagePage0(void)
 
 	// Create label widget: CH1_Pk_Label
 	wi.g.show = TRUE;
-	wi.g.x = 180;
+	wi.g.x = 225;
 	wi.g.y = 210;
-	wi.g.width = 15;
+	wi.g.width = 25;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "Pk:";
+	wi.text = " Pk";
 	wi.customDraw = gwinLabelDrawJustifiedLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -509,12 +512,12 @@ static void createPagePage0(void)
 
 	// Create label widget: CH1_P_Label
 	wi.g.show = TRUE;
-	wi.g.x = 250;
+	wi.g.x = 40;
 	wi.g.y = 210;
 	wi.g.width = 10;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "P:";
+	wi.text = "P";
 	wi.customDraw = gwinLabelDrawJustifiedLeft;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -704,7 +707,7 @@ static void createPagePage0(void)
 	wi.g.show = TRUE;
 	wi.g.x = 65;
 	wi.g.y = 200;
-	wi.g.width = 45;
+	wi.g.width = 70;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text ="";
@@ -716,6 +719,7 @@ static void createPagePage0(void)
 	gwinSetFont(CH1_RMS_Label_Txt, dejavu_sans_10);
 	gwinRedraw(CH1_RMS_Label_Txt);
 
+/*
 	// Create label widget: CH1_SF_Label_Txt
 	wi.g.show = TRUE;
 	wi.g.x = 60;
@@ -723,7 +727,7 @@ static void createPagePage0(void)
 	wi.g.width = 50;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "";
+	wi.text = "0.000";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -731,12 +735,13 @@ static void createPagePage0(void)
 	gwinLabelSetBorder(CH1_SF_Label_Txt, FALSE);
 	gwinSetFont(CH1_SF_Label_Txt, dejavu_sans_10);
 	gwinRedraw(CH1_SF_Label_Txt);
+*/
 
 	// Create label widget: CH1_Max_Label_Txt
 	wi.g.show = TRUE;
-	wi.g.x = 135;
+	wi.g.x = 165;
 	wi.g.y = 200;
-	wi.g.width = 45;
+	wi.g.width = 60;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "";
@@ -751,9 +756,9 @@ static void createPagePage0(void)
 	// Create label widget: CH1_Min_Label_Txt
 
 	wi.g.show = TRUE;
-	wi.g.x = 135;
+	wi.g.x = 165;
 	wi.g.y = 210;
-	wi.g.width = 45;
+	wi.g.width = 60;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "";
@@ -768,9 +773,9 @@ static void createPagePage0(void)
 	// Create label widget: CH1_PP_Label_Txt
 
 	wi.g.show = TRUE;
-	wi.g.x = 195;
+	wi.g.x = 245;
 	wi.g.y = 200;
-	wi.g.width = 55;
+	wi.g.width = 75;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "";
@@ -785,9 +790,9 @@ static void createPagePage0(void)
 	// Create label widget: CH1_Pk_Label_Txt
 
 	wi.g.show = TRUE;
-	wi.g.x = 195;
+	wi.g.x = 245;
 	wi.g.y = 210;
-	wi.g.width = 55;
+	wi.g.width = 75;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
 	wi.text = "";
@@ -799,6 +804,7 @@ static void createPagePage0(void)
 	gwinSetFont(CH1_Pk_Label_Txt, dejavu_sans_10);
 	gwinRedraw(CH1_Pk_Label_Txt);
 
+/*
 	// Create label widget: CH1_RT_Label_Txt
 	wi.g.show = TRUE;
 	wi.g.x = 265;
@@ -806,7 +812,7 @@ static void createPagePage0(void)
 	wi.g.width = 55;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "";
+	wi.text = "0.000";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -814,15 +820,16 @@ static void createPagePage0(void)
 	gwinLabelSetBorder(CH1_RT_Label_Txt, FALSE);
 	gwinSetFont(CH1_RT_Label_Txt, dejavu_sans_10);
 	gwinRedraw(CH1_RT_Label_Txt);
+*/
 
 	// Create label widget: CH1_P_Label_Txt
 	wi.g.show = TRUE;
-	wi.g.x = 260;
+	wi.g.x = 50;
 	wi.g.y = 210;
-	wi.g.width = 60;
+	wi.g.width = 85;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "";
+	wi.text = "0.000";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -923,7 +930,16 @@ void waveDisplay()
        break;
        
       }
-      ADC_buffer[use_buf][buf_i] = (ADC_val)*240/4096;
+      //clipped to y = 31~199
+      i=(ADC_val)*240/4096;
+      if(i < 31)
+      	ADC_buffer[use_buf][buf_i] = 31;
+      else if(i > 199)
+      	ADC_buffer[use_buf][buf_i] = 199;
+      else
+      	ADC_buffer[use_buf][buf_i] = i;
+
+
       buf_i++;
       smp_cnt = 0;
     }
@@ -944,7 +960,52 @@ void updateMeasData()
 	gwinSetText(CH1_PP_Label_Txt,updateValue,TRUE);
 	float2str(findPk(),updateValue,3);
 	gwinSetText(CH1_Pk_Label_Txt,updateValue,TRUE);	
+	if(findPeriod()==0)
+		gwinSetText(CH1_P_Label_Txt,"Nan",TRUE);
+	else
+	{
+		float2str(findPeriod(),updateValue,3);
+		gwinSetText(CH1_P_Label_Txt,updateValue,TRUE);
+	}
+	if(findTrigXA()==320)
+		gwinSetText(X_A_Label_Txt,"Nan",TRUE);
+	else
+	{
+		float2str(findTrigXA(),updateValue,0);
+		gwinSetText(X_A_Label_Txt,updateValue,TRUE);
+	}
+	float2str(240-Trg_Y_val,updateValue,0);
+	gwinSetText(Y_A_Label_Txt,updateValue,TRUE);	
 	UI_data_ready = FALSE;
+}
+
+int findTrigXA()
+{
+	int i;
+	for(i=0;i<320;i++)
+	{
+		if(ADC_buffer[0][i]==Trg_Y_val)
+			goto END;
+	}
+	END:
+	return i;
+}
+
+int findPeriod()
+{
+	int i,p1=0,p2=0,counter=0;
+	for(i=0;i<319;i++)
+	{
+		if(ADC_buffer[0][i]==Trg_Y_val)
+		{
+			counter++;
+			if(counter==1)
+				p1=i;
+			else if(counter==5)
+				p2=i;
+		}
+	}
+	return (p2-p1)/2;
 }
 
 float findMax()
@@ -985,13 +1046,14 @@ float findRMS()
 	return RMS;
 }
 
+/*
 float findRT()
 {
 	//after trigger solved
 	//need to know if signal is increasing or not 
 	//and increase from 10%-->90%
 }
-
+*/
 
 
 
@@ -1113,7 +1175,7 @@ void guiEventLoop(void)
 		// Get an event
 		//stuck here until event is received
    		waveDisplay();
- 
+ 	
 		pe = geventEventWait(&glistener,5);
 		switch (pe->type) 
 		{
@@ -1159,7 +1221,6 @@ void guiEventLoop(void)
 					break;
 						
 				}
-				
 			break;
 
 		}

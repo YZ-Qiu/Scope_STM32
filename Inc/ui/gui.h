@@ -84,6 +84,7 @@ float findRMS(void);
 float findP2P(void);
 float findPk(void);
 float findRT(void);
+int findTrigXA(void);
 void guiCreate(void);
 void guiShowPage(unsigned pageIndex);
 void guiEventLoop(void);
