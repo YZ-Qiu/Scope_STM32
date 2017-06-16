@@ -20,10 +20,12 @@ void SystemClock_Config(void);
 void Error_Handler(void);
 void MX_FREERTOS_Init(void);
 
-
+#define PI 3.14159265
+static uint16_t ADC_buffer[2][320]={};
 
 osThreadId UI_TaskHandle;
 osThreadId ADC_TaskHandle;
+__IO uint16_t ADC_val=0;
 
 void LED1_blink_Task(void const * argument)
 {
@@ -42,7 +44,16 @@ void LED2_blink_Task(void const * argument)
   }
 }
 
-#define PI 3.14159265
+void ADC_Task()
+{
+  MX_ADC1_Init();
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
+  HAL_ADC_Start(&hadc1);
+  while(1)
+  {
+      
+  }
+}
 int main(void)
 {
 
@@ -55,13 +66,15 @@ int main(void)
   MX_RNG_Init();
   MX_SPI3_Init();
 //  LCD_Initializtion();
+  MX_ADC1_Init();
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
+  HAL_ADC_Start(&hadc1);
 
-
-
-  osThreadDef(ADC_Task, ScopeDisplay, osPriorityRealtime, 1, 2048);
-  ADC_TaskHandle = osThreadCreate(osThread(ADC_Task), NULL);
-
-  osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 2048);
+/*
+  osThreadDef(my_ADC_Task, ADC_Task, osPriorityRealtime, 1, 2048);
+  ADC_TaskHandle = osThreadCreate(osThread(my_ADC_Task), NULL);
+*/
+  osThreadDef(UI_Task, UserInterface, osPriorityHigh, 1, 1024);
   UI_TaskHandle = osThreadCreate(osThread(UI_Task), NULL);
 
   osKernelStart();

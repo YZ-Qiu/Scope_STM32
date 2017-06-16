@@ -46,22 +46,10 @@ void UserInterface()
 
 
 
-  while (1) {
+  while (1) 
+  {
+    
     guiEventLoop();
   }
 }
 
-void ScopeDisplay()
-{
-  gfxInit();
-
-  gdispSetBacklight(100);
-  gdispSetContrast(100);
-
-  geventListenerInit(&glistener);
-  gwinAttachListener(&glistener);
-
-  //guiCreate();
-
-  displayADC();
-}

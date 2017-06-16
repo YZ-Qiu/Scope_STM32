@@ -700,15 +700,14 @@ static void createPagePage0(void)
 
 
 	// Create label widget: CH1_RMS_Label_Txt
-	char rms_value[16];
-	float2str(findRMS(),rms_value,3);
+
 	wi.g.show = TRUE;
 	wi.g.x = 65;
 	wi.g.y = 200;
 	wi.g.width = 45;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = rms_value;
+	wi.text ="";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -724,7 +723,7 @@ static void createPagePage0(void)
 	wi.g.width = 50;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "0.000";
+	wi.text = "";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -734,15 +733,13 @@ static void createPagePage0(void)
 	gwinRedraw(CH1_SF_Label_Txt);
 
 	// Create label widget: CH1_Max_Label_Txt
-	char max_value[16];
-	float2str(findMax(),max_value,3);
 	wi.g.show = TRUE;
 	wi.g.x = 135;
 	wi.g.y = 200;
 	wi.g.width = 45;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = max_value;
+	wi.text = "";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -752,15 +749,14 @@ static void createPagePage0(void)
 	gwinRedraw(CH1_Max_Label_Txt);
 
 	// Create label widget: CH1_Min_Label_Txt
-	char min_value[16];
-	float2str(findMin(),min_value,3);
+
 	wi.g.show = TRUE;
 	wi.g.x = 135;
 	wi.g.y = 210;
 	wi.g.width = 45;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = min_value;
+	wi.text = "";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -770,15 +766,14 @@ static void createPagePage0(void)
 	gwinRedraw(CH1_Min_Label_Txt);
 
 	// Create label widget: CH1_PP_Label_Txt
-	char pp_value[16];
-	float2str(findP2P(),pp_value,3);
+
 	wi.g.show = TRUE;
 	wi.g.x = 195;
 	wi.g.y = 200;
 	wi.g.width = 55;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = pp_value;
+	wi.text = "";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -788,15 +783,14 @@ static void createPagePage0(void)
 	gwinRedraw(CH1_PP_Label_Txt);
 
 	// Create label widget: CH1_Pk_Label_Txt
-	char pk_value[16];
-	float2str(findPk(),pk_value,3);
+
 	wi.g.show = TRUE;
 	wi.g.x = 195;
 	wi.g.y = 210;
 	wi.g.width = 55;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = pk_value;
+	wi.text = "";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -812,7 +806,7 @@ static void createPagePage0(void)
 	wi.g.width = 55;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "0.000";
+	wi.text = "";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -828,7 +822,7 @@ static void createPagePage0(void)
 	wi.g.width = 60;
 	wi.g.height = 10;
 	wi.g.parent = ghContainerPage0;
-	wi.text = "0.000";
+	wi.text = "";
 	wi.customDraw = gwinLabelDrawJustifiedRight;
 	wi.customParam = 0;
 	wi.customStyle = &x;
@@ -887,10 +881,8 @@ void guiShowPage(unsigned pageIndex)
 		break;
 	}
 }
-
-
-static uint16_t ADC_buffer[2][320]={};
-void displayADC(void)
+int use_buf=0;
+void waveDisplay()
 {
 	/*
 		int i;
@@ -899,36 +891,37 @@ void displayADC(void)
     }
     */
 
-  uint16_t ADC_val=0;
+  //uint16_t ADC_val=0;
   uint16_t smp_cnt = 0;
-  MX_ADC1_Init();
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_val,1);
-  HAL_ADC_Start(&hadc1);
+
   uint16_t buf_i=0;
   //Assume 42MHz sample rate---> down scale to 420Hz
   char str[32];
-  int use_buf=0,i;
-  while(1)
+  int i;
+  while(!UI_data_ready)
   {
 
-    ADC_val = HAL_ADC_GetValue(&hadc1);
+  	ADC_val = HAL_ADC_GetValue(&hadc1);
     smp_cnt++;
-    if(smp_cnt > 99){
+    if(smp_cnt > 10){
       if(buf_i==320)
       {
         use_buf = !use_buf;
         for(i=0;i<(320-1);i++)
         {
-          gdispDrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Black);
+          gdispDrawLine( i,ADC_buffer[use_buf][i],i,ADC_buffer[use_buf][i+1],Black);
         }
         use_buf = !use_buf;
         
         for(i=0;i<(320-1);i++)
         {
-          gdispDrawLine( i,ADC_buffer[use_buf][i]+60,i,ADC_buffer[use_buf][i+1]+60,Green);
+          gdispDrawLine( i,ADC_buffer[use_buf][i],i,ADC_buffer[use_buf][i+1],Green);
         }
-        buf_i=0;
         use_buf = !use_buf;
+        UI_data_ready = TRUE;
+        updateMeasData();
+       break;
+       
       }
       ADC_buffer[use_buf][buf_i] = (ADC_val)*240/4096;
       buf_i++;
@@ -938,12 +931,27 @@ void displayADC(void)
   
 }
 
+void updateMeasData()
+{
+	char updateValue[16];
+	float2str(findMax(),updateValue,3);
+	gwinSetText(CH1_Max_Label_Txt,updateValue,TRUE);	
+	float2str(findRMS(),updateValue,3);
+	gwinSetText(CH1_RMS_Label_Txt,updateValue,TRUE);
+	float2str(findMin(),updateValue,3);
+	gwinSetText(CH1_Min_Label_Txt,updateValue,TRUE);	
+	float2str(findP2P(),updateValue,3);
+	gwinSetText(CH1_PP_Label_Txt,updateValue,TRUE);
+	float2str(findPk(),updateValue,3);
+	gwinSetText(CH1_Pk_Label_Txt,updateValue,TRUE);	
+	UI_data_ready = FALSE;
+}
 
 float findMax()
 {
 	int i;
 	float max=0;
-	for(i=0;i<320;i++)
+	for(i=0;i<319;i++)
 		max = ((max<ADC_buffer[0][i])?ADC_buffer[0][i]:max);
 	return max;
 }
@@ -951,8 +959,8 @@ float findMax()
 float findMin()
 {
 	int i;
-	float min=0;
-	for(i=0;i<320;i++)
+	float min=4096;
+	for(i=0;i<319;i++)
 		min = ((min>ADC_buffer[0][i])?ADC_buffer[0][i]:min);
 	return min;
 }
@@ -971,8 +979,9 @@ float findRMS()
 {
 	int i;
 	float RMS=0;
-	for(i=0;i<320;i++)
+	for(i=0;i<319;i++)
 		RMS += (ADC_buffer[0][i]*ADC_buffer[0][i]);
+	RMS = sqrt(RMS/319);
 	return RMS;
 }
 
@@ -1015,8 +1024,6 @@ void guiCreate(void)
 
 
 	//draw ADC data
-
-
 
 /*
    float val=0;
@@ -1105,8 +1112,9 @@ void guiEventLoop(void)
 	{
 		// Get an event
 		//stuck here until event is received
-
-		pe = geventEventWait(&glistener, TIME_INFINITE);
+   		waveDisplay();
+ 
+		pe = geventEventWait(&glistener,5);
 		switch (pe->type) 
 		{
 			case GEVENT_GWIN_BUTTON:

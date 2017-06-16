@@ -74,6 +74,8 @@ extern GHandle CH1_P_Label_Txt;
 extern GHandle Label_CH2;
 extern GHandle CH2_Label;
 
+extern __IO uint16_t ADC_val;
+
 // Function Prototypes
 void displayADC(void);
 float findMax(void);
@@ -85,6 +87,10 @@ float findRT(void);
 void guiCreate(void);
 void guiShowPage(unsigned pageIndex);
 void guiEventLoop(void);
+void update_meas_data(void);
+
+static uint16_t ADC_buffer[2][320]={};
+static bool UI_data_ready;
 
 #endif /* _GUI_H_ */
 
