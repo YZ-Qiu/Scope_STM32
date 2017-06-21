@@ -21,12 +21,13 @@ void Error_Handler(void);
 void MX_FREERTOS_Init(void);
 
 #define PI 3.14159265
-static uint16_t ADC_buffer[2][320]={};
+static uint16_t ADC_buffer[320]={};
 
 osThreadId UI_TaskHandle;
 osThreadId ADC_TaskHandle;
 __IO uint16_t ADC_val=0;
 
+/*
 void LED1_blink_Task(void const * argument)
 {
   for(;;)
@@ -43,6 +44,7 @@ void LED2_blink_Task(void const * argument)
     osDelay(1000);
   }
 }
+*/
 
 void ADC_Task()
 {
@@ -54,6 +56,7 @@ void ADC_Task()
       
   }
 }
+
 int main(void)
 {
 

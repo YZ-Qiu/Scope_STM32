@@ -3,13 +3,13 @@
 /*                                                                            */
 /* http://ugfx.org                                                            */
 /******************************************************************************/
-
 #ifndef _GUI_H_
 #define _GUI_H_
 
 #include "gfx.h"
+//#include "scope.h"
 
-// Widget groups
+// Widupdate groups
 #define GROUP_DEFAULT 0
 
 #define DOT_ON 2
@@ -33,9 +33,9 @@ extern GHandle V_Div_List;
 
 extern GHandle Label_X;
 extern GHandle X_A_Label;
-extern GHandle X_A_Label_Txt;
+extern GHandle X_A_Button;
 extern GHandle X_B_Label;
-extern GHandle X_B_Label_Txt;
+extern GHandle X_B_Button;
 extern GHandle X_F_Label;
 extern GHandle X_F_Label_Txt;
 extern GHandle X_AB_Label;
@@ -43,9 +43,9 @@ extern GHandle X_AB_Label_Txt;
 
 extern GHandle Label_Y;
 extern GHandle Y_A_Label;
-extern GHandle Y_A_Label_Txt;
+extern GHandle Y_A_Button;
 extern GHandle Y_B_Label;
-extern GHandle Y_B_Label_Txt;
+extern GHandle Y_B_Button;
 extern GHandle Y_AB_Label;
 extern GHandle Y_AB_Label_Txt;
 extern GHandle Y_Trg_Label;
@@ -62,8 +62,8 @@ extern GHandle CH1_Max_Label;
 extern GHandle CH1_Max_Label_Txt;
 extern GHandle CH1_PP_Label;
 extern GHandle CH1_PP_Label_Txt;
-extern GHandle CH1_RT_Label;
-extern GHandle CH1_RT_Label_Txt;
+extern GHandle CH1_AVG_Label;
+extern GHandle CH1_AVG_Label_Txt;
 extern GHandle CH1_Min_Label;
 extern GHandle CH1_Min_Label_Txt;
 extern GHandle CH1_Pk_Label;
@@ -74,23 +74,18 @@ extern GHandle CH1_P_Label_Txt;
 extern GHandle Label_CH2;
 extern GHandle CH2_Label;
 
-extern __IO uint16_t ADC_val;
-
 // Function Prototypes
-void displayADC(void);
-float findMax(void);
-float findMin(void);
-float findRMS(void);
-float findP2P(void);
-float findPk(void);
-float findRT(void);
-int findTrigXA(void);
+
+
+
 void guiCreate(void);
 void guiShowPage(unsigned pageIndex);
 void guiEventLoop(void);
-void update_meas_data(void);
+void updateMeasData(void);
+//float *getFFT(float data[]);
 
-static uint16_t ADC_buffer[2][320]={};
+extern uint16_t ADC_buffer[320];
+extern float ADC_Vmax;
 static bool UI_data_ready;
 
 #endif /* _GUI_H_ */
